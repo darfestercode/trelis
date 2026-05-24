@@ -3,15 +3,40 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import { Briefcase, GraduationCap, MapPin, Target, Activity, Eye, Settings } from 'lucide-react'
 import AppShell from '@/app/components/AppShell'
 import { User } from '@/types'
+
+interface ProfileUser extends User {
+  connections_count?: number
+  networks_count?: number
+  recent_milestones?: { id: number; title: string; is_completed: boolean; created_at: string }[]
+}
+
+function timeAgo(ts: string) {
+  const diff = Date.now() - new Date(ts).getTime()
+  const d = Math.floor(diff / 86400000)
+  if (d === 0) return 'Today'
+  if (d === 1) return '1 day ago'
+  if (d < 7) return `${d} days ago`
+  if (d < 30) return `${Math.floor(d / 7)} week${Math.floor(d / 7) > 1 ? 's' : ''} ago`
+  return `${Math.floor(d / 30)} month${Math.floor(d / 30) > 1 ? 's' : ''} ago`
+}
+
+const BRAND = '#335293'
+const BRAND_LIGHT = '#4A6BAE'
+const TEXT_MAIN = '#111827'
+const TEXT_MUTED = '#6B7280'
+const BORDER = '#E5E7EB'
+const BG_CARD = '#FFFFFF'
+const BG_HOVER = '#F9FAFB'
 
 export default function ProfilePage() {
   const params = useParams()
   const router = useRouter()
   const profileId = params.id as string
 
-  const [profile, setProfile] = useState<User | null>(null)
+  const [profile, setProfile] = useState<ProfileUser | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -45,7 +70,7 @@ export default function ProfilePage() {
 
   const yearLabel = (y: number | null) => {
     if (!y) return null
-    const map: Record<number, string> = { 1: '1st Year Undergrad', 2: '2nd Year Undergrad', 3: '3rd Year Undergrad', 4: '4th Year Undergrad', 5: 'Postgraduate', 6: 'PhD' }
+    const map: Record<number, string> = { 1: 'Undergrad', 2: 'Undergrad', 3: 'Undergrad', 4: 'Undergrad', 5: 'Postgraduate', 6: 'PhD' }
     return map[y] ?? `Year ${y}`
   }
 
@@ -54,14 +79,8 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <AppShell>
-        <div className="max-w-5xl mx-auto px-6 py-6 flex gap-6">
-          <div className="flex-1 space-y-4">
-            <div className="bg-white rounded-xl h-48 animate-pulse border border-gray-200" />
-            <div className="bg-white rounded-xl h-24 animate-pulse border border-gray-200" />
-          </div>
-          <div className="w-64 shrink-0">
-            <div className="bg-white rounded-xl h-40 animate-pulse border border-gray-200" />
-          </div>
+        <div style={{ margin: '0 auto', maxWidth: '1100px', padding: '2rem 2.5rem' }}>
+          <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', height: '300px', animation: 'pulse 2s infinite' }} />
         </div>
       </AppShell>
     )
@@ -70,9 +89,9 @@ export default function ProfilePage() {
   if (notFound || !profile) {
     return (
       <AppShell>
-        <div className="max-w-5xl mx-auto px-6 py-20 text-center">
-          <p className="text-xl font-bold text-gray-700">User not found</p>
-          <Link href="/dashboard" className="text-[#1e3a5f] mt-4 inline-block hover:underline text-sm">
+        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '4rem 2.5rem', textAlign: 'center' }}>
+          <p style={{ fontSize: '1.5rem', fontWeight: 700, color: TEXT_MAIN }}>User not found</p>
+          <Link href="/dashboard" style={{ color: BRAND, marginTop: '1rem', display: 'inline-block', fontSize: '0.9rem' }}>
             Back to Dashboard
           </Link>
         </div>
@@ -87,134 +106,210 @@ export default function ProfilePage() {
   }, {})
 
   const categoryLabels: Record<string, string> = {
-    skill: 'Skills',
-    level: 'Level',
-    goal: 'Goals',
-    field: 'Fields',
-    role: 'Roles',
-    experience: 'Experience',
+    skill: 'Skill Focus', skills: 'Skill Focus',
+    level: 'Level of Study',
+    goal: 'Future Goal', goals: 'Future Goal',
+    field: 'Field', role: 'Role', experience: 'Experience',
   }
+
+  const milestones = profile.recent_milestones ?? []
 
   return (
     <AppShell>
-      <div className="max-w-5xl mx-auto px-6 py-6 flex gap-6">
-        {/* Main */}
-        <div className="flex-1 min-w-0 space-y-4">
-          {/* Profile card */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <div className="h-28 bg-[#1e3a5f]" />
-            <div className="px-6 pb-6">
-              <div className="flex items-end justify-between -mt-10 mb-4">
-                <div className="w-20 h-20 rounded-full border-4 border-white shadow bg-[#1e3a5f] flex items-center justify-center text-white text-2xl font-bold shrink-0">
-                  {profile.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="flex gap-2 pb-1">
-                  {isOwnProfile ? (
-                    <Link
-                      href="/my-profile"
-                      className="text-xs font-medium border border-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      Edit Profile
-                    </Link>
-                  ) : (
-                    <>
-                      <button
-                        onClick={handleConnect}
-                        disabled={connected}
-                        className={`text-xs font-medium px-4 py-2 rounded-lg transition-colors ${
-                          connected
-                            ? 'border border-gray-200 text-gray-400 cursor-default'
-                            : 'border border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white'
-                        }`}
-                      >
-                        {connected ? 'Connected' : 'Connect'}
-                      </button>
-                      <button
-                        onClick={() => router.push(`/messages?with=${profile.id}`)}
-                        className="text-xs font-medium bg-[#1e3a5f] text-white px-4 py-2 rounded-lg hover:bg-[#162d4a] transition-colors"
-                      >
-                        Message
-                      </button>
-                    </>
+      <div style={{ margin: '0 auto', width: '100%', maxWidth: '1100px', padding: '2rem 2.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+
+        {/* ── Hero Banner ── */}
+        <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', overflow: 'hidden', position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div style={{ width: '100%', height: '140px', background: `linear-gradient(135deg, ${BRAND} 0%, ${BRAND_LIGHT} 100%)` }} />
+
+          {isOwnProfile && (
+            <Link
+              href="/my-profile"
+              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(5px)', border: 'none', padding: '0.5rem 1rem', borderRadius: '100px', color: 'white', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', textDecoration: 'none' }}
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit Profile
+            </Link>
+          )}
+
+          <div style={{ padding: '0 2.5rem 2.5rem 2.5rem', position: 'relative' }}>
+            <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: BG_CARD, border: `4px solid ${BG_CARD}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 800, color: BRAND, marginTop: '-60px', marginBottom: '1rem', boxShadow: '0 4px 15px rgba(0,0,0,0.08)' }}>
+              {profile.name.charAt(0).toUpperCase()}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h1 style={{ fontSize: '2rem', fontWeight: 800, color: TEXT_MAIN, marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>
+                  {profile.name}
+                </h1>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', color: TEXT_MUTED, fontSize: '0.9rem', fontWeight: 500, marginTop: '0.5rem' }}>
+                  {yearLabel(profile.year) && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <Briefcase size={16} color={BRAND} /> {yearLabel(profile.year)}{profile.major ? ` · ${profile.major}` : ''}
+                    </span>
+                  )}
+                  {profile.university && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <GraduationCap size={16} color={BRAND} /> {profile.university}
+                    </span>
+                  )}
+                  {profile.country && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <MapPin size={16} color={BRAND} /> {profile.country}
+                    </span>
                   )}
                 </div>
               </div>
-              <h1 className="text-lg font-bold text-gray-900">{profile.name}</h1>
-              <p className="text-sm text-gray-500 mt-0.5">
-                {[yearLabel(profile.year), profile.major, profile.university ? `@ ${profile.university}` : null]
-                  .filter(Boolean).join(' · ')}
-              </p>
-              {profile.country && <p className="text-xs text-gray-400 mt-1">{profile.country}</p>}
+
+              {!isOwnProfile && currentUser && (
+                <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '0.25rem' }}>
+                  <button
+                    onClick={handleConnect}
+                    disabled={connected}
+                    style={{ background: 'transparent', border: `1px solid ${connected ? BORDER : BRAND}`, padding: '0.5rem 1.25rem', borderRadius: '100px', fontSize: '0.85rem', fontWeight: 600, color: connected ? TEXT_MUTED : BRAND, cursor: connected ? 'default' : 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { if (!connected) e.currentTarget.style.background = `rgba(51,82,147,0.05)` }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                  >
+                    {connected ? 'Connected' : 'Connect'}
+                  </button>
+                  <button
+                    onClick={() => router.push(`/messages?with=${profile.id}`)}
+                    style={{ background: BRAND, border: 'none', padding: '0.5rem 1.25rem', borderRadius: '100px', fontSize: '0.85rem', fontWeight: 600, color: 'white', cursor: 'pointer', transition: 'opacity 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.opacity = '0.9' }}
+                    onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+                  >
+                    Message
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* About Me */}
-          {profile.bio && (
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 text-sm mb-3">About Me</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">{profile.bio}</p>
-            </div>
-          )}
-
-          {/* My Filter Tags */}
-          {Object.keys(tagsByCategory).length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 text-sm mb-4">My Filter Tags</h3>
-              <div className="space-y-4">
-                {Object.entries(tagsByCategory).map(([category, tags]) => (
-                  <div key={category}>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                      {categoryLabels[category] ?? category}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map(t => (
-                        <span key={t.id} className="text-xs border border-gray-200 text-gray-600 px-3 py-1 rounded-full">
-                          {t.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Right sidebar */}
-        <div className="w-64 shrink-0 space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-            <h3 className="font-semibold text-gray-900 text-sm mb-4">Impact Metrics</h3>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
-                <span className="text-xs text-gray-500">Profile Views</span>
-                <span className="text-sm font-semibold text-gray-900">—</span>
+        {/* ── Two-column body ── */}
+        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+
+          {/* Left column */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2rem', minWidth: 0 }}>
+
+            {/* About Me */}
+            {profile.bio && (
+              <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem', color: TEXT_MAIN }}>About Me</h3>
+                <p style={{ color: TEXT_MAIN, fontSize: '1rem', lineHeight: 1.6 }}>{profile.bio}</p>
               </div>
-              <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
-                <span className="text-xs text-gray-500">Connections</span>
-                <span className="text-sm font-semibold text-gray-900">—</span>
+            )}
+
+            {/* My Filter Tags */}
+            {Object.keys(tagsByCategory).length > 0 && (
+              <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: TEXT_MAIN }}>My Filter Tags</h3>
+                  {isOwnProfile && (
+                    <Link
+                      href="/my-profile"
+                      style={{ background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: '6px', color: TEXT_MAIN, padding: '0.4rem 0.8rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', textDecoration: 'none' }}
+                    >
+                      <Settings size={14} /> Manage Tags
+                    </Link>
+                  )}
+                </div>
+
+                <p style={{ color: TEXT_MUTED, fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                  Your active tags dictate how recruiters, study groups, and peers discover you in the network search algorithm.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {Object.entries(tagsByCategory).map(([category, tags]) => (
+                    <div key={category}>
+                      <h4 style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: TEXT_MUTED, letterSpacing: '0.05em', marginBottom: '0.8rem' }}>
+                        {categoryLabels[category] ?? category}
+                      </h4>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {tags.map(t => (
+                          <span key={t.id} style={{ background: 'rgba(51, 82, 147, 0.08)', color: BRAND, border: '1px solid rgba(51, 82, 147, 0.2)', padding: '0.4rem 1rem', borderRadius: '100px', fontSize: '0.85rem', fontWeight: 600 }}>
+                            {t.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex items-center justify-between py-2.5">
-                <span className="text-xs text-gray-500">Member Since</span>
-                <span className="text-sm font-semibold text-gray-900">
-                  {new Date(profile.created_at).toLocaleDateString([], { month: 'short', year: 'numeric' })}
-                </span>
+            )}
+
+            {/* Recent Activity Planner */}
+            {milestones.length > 0 && (
+              <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', color: TEXT_MAIN }}>Recent Activity Planner</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {milestones.map((item, i) => (
+                    <div key={item.id} style={{ display: 'flex', gap: '1rem', position: 'relative' }}>
+                      {i !== milestones.length - 1 && (
+                        <div style={{ position: 'absolute', top: '30px', left: '19px', width: '2px', height: 'calc(100% - 10px)', background: BORDER }} />
+                      )}
+                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: item.is_completed ? 'rgba(0, 202, 114, 0.1)' : 'rgba(51, 82, 147, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {item.is_completed
+                          ? <Target size={18} color="#00ca72" />
+                          : <Activity size={18} color={BRAND} />}
+                      </div>
+                      <div style={{ paddingTop: '0.35rem' }}>
+                        <p style={{ color: TEXT_MAIN, fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.2rem' }}>{item.title}</p>
+                        <span style={{ color: TEXT_MUTED, fontSize: '0.8rem' }}>{timeAgo(item.created_at)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
           </div>
 
-          {!isOwnProfile && currentUser && (
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-              <p className="text-xs text-gray-500 leading-relaxed mb-3">
-                Connect to see {profile.name.split(' ')[0]}&apos;s full academic roadmap and collaborate on projects.
-              </p>
-              <button
-                onClick={() => router.push(`/messages?with=${profile.id}`)}
-                className="w-full bg-[#1e3a5f] text-white text-xs font-medium py-2 rounded-lg hover:bg-[#162d4a] transition-colors"
-              >
-                Send Message
-              </button>
+          {/* Right rail */}
+          <aside style={{ width: '300px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+
+            {/* Impact Metrics */}
+            <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem', color: TEXT_MAIN }}>Impact Metrics</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ background: BG_HOVER, border: `1px solid ${BORDER}`, padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 800, color: BRAND, marginBottom: '0.2rem' }}>
+                    {profile.connections_count ?? 0}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Connections</div>
+                </div>
+                <div style={{ background: BG_HOVER, border: `1px solid ${BORDER}`, padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 800, color: BRAND, marginBottom: '0.2rem' }}>
+                    {profile.networks_count ?? 0}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Networks</div>
+                </div>
+              </div>
+              <div style={{ marginTop: '1rem', background: BG_HOVER, border: `1px solid ${BORDER}`, padding: '1rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: TEXT_MAIN, fontWeight: 600, fontSize: '0.9rem' }}>
+                  <Eye size={18} color={TEXT_MUTED} /> Profile Views
+                </div>
+                <span style={{ fontWeight: 800, fontSize: '1.1rem', color: TEXT_MAIN }}>—</span>
+              </div>
             </div>
-          )}
+
+            {/* CTA */}
+            <div style={{ background: BRAND, color: 'white', borderRadius: '12px', padding: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.5rem' }}>Expand your reach</h3>
+              <p style={{ fontSize: '0.85rem', lineHeight: 1.5, opacity: 0.9, marginBottom: '1.25rem' }}>
+                Users with 10+ strictly defined tags receive 40% more study group invites.
+              </p>
+              <Link
+                href="/my-profile"
+                style={{ display: 'block', width: '100%', padding: '0.6rem', background: 'white', color: BRAND, borderRadius: '6px', fontWeight: 700, textAlign: 'center', textDecoration: 'none', fontSize: '0.9rem' }}
+              >
+                Add new Tags
+              </Link>
+            </div>
+
+          </aside>
         </div>
       </div>
     </AppShell>
