@@ -43,7 +43,7 @@ export default function SignupPage() {
         return
       }
 
-      router.push('/login?registered=1')
+      router.push('/dashboard')
     } catch {
       setError('Something went wrong. Please try again.')
     } finally {
@@ -53,7 +53,7 @@ export default function SignupPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg">
+      <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 justify-center">
@@ -77,35 +77,21 @@ export default function SignupPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="name"
-                  type="text"
-                  required
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="Jane Smith"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="jane@university.edu"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
-                />
-              </div>
+            {/* Required fields first */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="email"
+                type="email"
+                required
+                autoFocus
+                value={form.email}
+                onChange={handleChange}
+                placeholder="you@email.com"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+              />
             </div>
 
             <div>
@@ -124,64 +110,73 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">University</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Full Name <span className="text-red-500">*</span>
+              </label>
               <input
-                name="university"
+                name="name"
                 type="text"
-                value={form.university}
+                required
+                value={form.name}
                 onChange={handleChange}
-                placeholder="MIT, Oxford, etc."
+                placeholder="Jane Smith"
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Major</label>
+            {/* Optional profile fields */}
+            <div className="pt-2">
+              <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-3">
+                Optional — fill in now or later
+              </p>
+              <div className="space-y-3">
                 <input
-                  name="major"
+                  name="university"
                   type="text"
-                  value={form.major}
+                  value={form.university}
                   onChange={handleChange}
-                  placeholder="Computer Science"
+                  placeholder="University (e.g. MIT, Oxford)"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    name="major"
+                    type="text"
+                    value={form.major}
+                    onChange={handleChange}
+                    placeholder="Major"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+                  />
+                  <select
+                    name="year"
+                    value={form.year}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 bg-white text-gray-500"
+                  >
+                    <option value="">Year</option>
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
+                    <option value="5">Graduate</option>
+                    <option value="6">PhD</option>
+                  </select>
+                </div>
+                <input
+                  name="country"
+                  type="text"
+                  value={form.country}
+                  onChange={handleChange}
+                  placeholder="Country"
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                <select
-                  name="year"
-                  value={form.year}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 bg-white"
-                >
-                  <option value="">Select year</option>
-                  <option value="1">1st Year</option>
-                  <option value="2">2nd Year</option>
-                  <option value="3">3rd Year</option>
-                  <option value="4">4th Year</option>
-                  <option value="5">Graduate</option>
-                  <option value="6">PhD</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-              <input
-                name="country"
-                type="text"
-                value={form.country}
-                onChange={handleChange}
-                placeholder="United States"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
-              />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-2 shadow-md"
+              className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-md"
             >
               {loading ? 'Creating account…' : 'Create Account'}
             </button>
