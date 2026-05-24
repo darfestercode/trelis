@@ -1,193 +1,274 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/app/components/Navbar'
-import { User, Tag } from '@/types'
+import Link from 'next/link'
+import AppShell from '@/app/components/AppShell'
+import { User, Conversation } from '@/types'
 
-export default function DashboardPage() {
+interface Post {
+  id: number
+  content: string
+  created_at: string
+  user_id: number
+  name: string
+  university: string | null
+  major: string | null
+  year: number | null
+  tags: { id: number; name: string; category: string }[]
+}
+
+function timeAgo(ts: string) {
+  const diff = Date.now() - new Date(ts).getTime()
+  const m = Math.floor(diff / 60000)
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
+}
+
+function yearLabel(y: number | null) {
+  const map: Record<number, string> = { 1: 'Undergrad', 2: 'Undergrad', 3: 'Undergrad', 4: 'Undergrad', 5: 'Postgraduate', 6: 'PhD' }
+  return y ? (map[y] ?? 'Student') : 'Student'
+}
+
+export default function FeedPage() {
   const router = useRouter()
   const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [users, setUsers] = useState<User[]>([])
-  const [tags, setTags] = useState<Record<string, Tag[]>>({})
-  const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState({
-    search: '',
-    field: '',
-    role: '',
-    experience: '',
-    country: '',
-  })
+  const [posts, setPosts] = useState<Post[]>([])
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [postText, setPostText] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [connected, setConnected] = useState<Set<number>>(new Set())
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!d) { router.push('/login'); return }
-        setCurrentUser(d.user)
-      })
-    fetch('/api/tags')
-      .then((r) => r.json())
-      .then((d) => setTags(d.grouped ?? {}))
+    fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(d => {
+      if (!d) { router.push('/login'); return }
+      setCurrentUser(d.user)
+    })
+    fetch('/api/posts').then(r => r.json()).then(d => setPosts(d.posts ?? []))
+    fetch('/api/messages').then(r => r.json()).then(d => setConversations(d.conversations ?? []))
+    fetch('/api/connections').then(r => r.json()).then(d => {
+      const ids = new Set<number>((d.connections ?? []).map((c: { other_user_id: number }) => c.other_user_id))
+      setConnected(ids)
+    })
   }, [router])
 
-  const fetchUsers = useCallback(async () => {
-    setLoading(true)
-    const params = new URLSearchParams()
-    if (filters.search) params.set('search', filters.search)
-    if (filters.field) params.set('field', filters.field)
-    if (filters.role) params.set('role', filters.role)
-    if (filters.experience) params.set('experience', filters.experience)
-    if (filters.country) params.set('country', filters.country)
+  async function handlePost(e: React.FormEvent) {
+    e.preventDefault()
+    if (!postText.trim() || submitting) return
+    setSubmitting(true)
+    const res = await fetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: postText.trim() }),
+    })
+    if (res.ok) {
+      setPostText('')
+      const data = await fetch('/api/posts').then(r => r.json())
+      setPosts(data.posts ?? [])
+    }
+    setSubmitting(false)
+  }
 
-    const res = await fetch(`/api/users?${params}`)
-    const data = await res.json()
-    setUsers(data.users ?? [])
-    setLoading(false)
-  }, [filters])
+  async function handleConnect(userId: number) {
+    await fetch('/api/connections', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipient_id: userId }),
+    })
+    setConnected(prev => new Set([...prev, userId]))
+  }
 
-  useEffect(() => {
-    fetchUsers()
-  }, [fetchUsers])
-
-  const yearLabel = (y: number | null) => {
-    if (!y) return null
-    const map: Record<number, string> = { 1: '1st Year', 2: '2nd Year', 3: '3rd Year', 4: '4th Year', 5: 'Graduate', 6: 'PhD' }
-    return map[y] ?? `Year ${y}`
+  function formatTime(ts: string) {
+    const d = new Date(ts)
+    const now = new Date()
+    return d.toDateString() === now.toDateString()
+      ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : d.toLocaleDateString([], { month: 'short', day: 'numeric' })
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar currentUserId={currentUser?.id} />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Discover Students & Mentors</h1>
-          <p className="text-gray-500 mt-1">Find your next collaborator, mentor, or peer</p>
-        </div>
-
-        {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="lg:col-span-2">
-              <input
-                type="text"
-                placeholder="Search by name or university…"
-                value={filters.search}
-                onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+    <AppShell>
+      <div className="max-w-6xl mx-auto px-6 py-6 flex gap-6">
+        {/* Main feed */}
+        <div className="flex-1 min-w-0 space-y-5">
+          {/* Post composer */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <form onSubmit={handlePost}>
+              <textarea
+                ref={textareaRef}
+                value={postText}
+                onChange={e => setPostText(e.target.value)}
+                placeholder="Share a milestone or ask for study help..."
+                rows={3}
+                className="w-full text-sm text-gray-700 placeholder-gray-400 resize-none outline-none border-none"
               />
-            </div>
-            <select
-              value={filters.field}
-              onChange={(e) => setFilters((f) => ({ ...f, field: e.target.value }))}
-              className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
-            >
-              <option value="">All Fields</option>
-              {(tags.field ?? []).map((t) => (
-                <option key={t.id} value={t.name}>{t.name}</option>
-              ))}
-            </select>
-            <select
-              value={filters.role}
-              onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}
-              className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
-            >
-              <option value="">All Roles</option>
-              {(tags.role ?? []).map((t) => (
-                <option key={t.id} value={t.name}>{t.name}</option>
-              ))}
-            </select>
-            <input
-              type="text"
-              placeholder="Country…"
-              value={filters.country}
-              onChange={(e) => setFilters((f) => ({ ...f, country: e.target.value }))}
-              className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            />
-          </div>
-        </div>
-
-        {/* Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl h-64 animate-pulse border border-gray-100" />
-            ))}
-          </div>
-        ) : users.length === 0 ? (
-          <div className="text-center py-20 text-gray-400">
-            <p className="text-lg">No students found matching your filters.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {users.map((user) => (
-              <div
-                key={user.id}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col"
-              >
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-blue-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-bold text-gray-900 truncate">{user.name}</h3>
-                    {user.university && (
-                      <p className="text-sm text-gray-500 truncate">{user.university}</p>
-                    )}
-                    {(user.major || user.year) && (
-                      <p className="text-xs text-gray-400 truncate">
-                        {[user.major, yearLabel(user.year)].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
-                  </div>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                <div className="flex gap-4">
+                  <button type="button" className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth={1.8} />
+                      <circle cx="8.5" cy="8.5" r="1.5" strokeWidth={1.8} />
+                      <polyline points="21 15 16 10 5 21" strokeWidth={1.8} />
+                    </svg>
+                    Media
+                  </button>
+                  <button type="button" className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Campus
+                  </button>
                 </div>
+                <button
+                  type="submit"
+                  disabled={!postText.trim() || submitting}
+                  className="bg-[#1e3a5f] text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-[#162d4a] transition-colors disabled:opacity-50"
+                >
+                  Post Update
+                </button>
+              </div>
+            </form>
+          </div>
 
-                {user.bio && (
-                  <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">{user.bio}</p>
-                )}
+          {/* Feed */}
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold text-gray-900 text-base">Your Feed</h2>
+            <span className="text-xs text-gray-400">Sort by: Relevant</span>
+          </div>
 
-                {user.tags && user.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {user.tags.slice(0, 4).map((tag) => (
-                      <span
-                        key={tag.id}
-                        className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-medium"
-                      >
-                        {tag.name}
-                      </span>
-                    ))}
-                    {user.tags.length > 4 && (
-                      <span className="text-xs text-gray-400 px-2 py-0.5">
-                        +{user.tags.length - 4}
-                      </span>
+          {posts.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400 shadow-sm">
+              <p className="text-base">No posts yet.</p>
+              <p className="text-sm mt-1">Be the first to share a milestone!</p>
+            </div>
+          ) : (
+            posts.map(post => (
+              <div key={post.id} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    {post.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <Link href={`/profile/${post.user_id}`} className="font-semibold text-gray-900 text-sm hover:underline">
+                          {post.name}
+                        </Link>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {yearLabel(post.year)}
+                          {post.major ? ` · ${post.major}` : ''}
+                          {post.university ? ` @ ${post.university}` : ''}
+                          {' · '}{timeAgo(post.created_at)}
+                        </p>
+                      </div>
+                      {currentUser && currentUser.id !== post.user_id && (
+                        <button
+                          onClick={() => handleConnect(post.user_id)}
+                          disabled={connected.has(post.user_id)}
+                          className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors shrink-0 ${
+                            connected.has(post.user_id)
+                              ? 'border-gray-200 text-gray-400 cursor-default'
+                              : 'border-gray-300 text-gray-700 hover:border-[#1e3a5f] hover:text-[#1e3a5f]'
+                          }`}
+                        >
+                          {connected.has(post.user_id) ? 'Connected' : 'Connect'}
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-700 mt-2 leading-relaxed">{post.content}</p>
+                    {post.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {post.tags.map(t => (
+                          <span key={t.id} className="text-xs border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full">
+                            {t.name}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
-                )}
-
-                <div className="flex gap-2 mt-auto">
-                  <Link
-                    href={`/profile/${user.id}`}
-                    className="flex-1 text-center text-sm font-medium text-indigo-600 border border-indigo-200 py-2 rounded-xl hover:bg-indigo-50 transition-colors"
-                  >
-                    View Profile
-                  </Link>
-                  {currentUser && currentUser.id !== user.id && (
-                    <Link
-                      href={`/messages?with=${user.id}`}
-                      className="flex-1 text-center text-sm font-medium text-white bg-indigo-600 py-2 rounded-xl hover:bg-indigo-700 transition-colors"
-                    >
-                      Message
-                    </Link>
-                  )}
                 </div>
               </div>
-            ))}
+            ))
+          )}
+        </div>
+
+        {/* Right sidebar */}
+        <div className="w-72 shrink-0 space-y-5">
+          {/* Updates */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-gray-900 text-sm">Updates</h3>
+              <span className="text-xs text-gray-400 border border-gray-200 px-2 py-0.5 rounded">PROMOTED</span>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <a href="#" className="text-sm font-medium text-[#1e3a5f] hover:underline flex items-center gap-1">
+                  Student Opportunities Hub
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+                <p className="text-xs text-gray-500 mt-0.5">Discover internships, grants, and accelerators for students worldwide.</p>
+                <button className="mt-2 text-xs border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 w-full">
+                  Learn More
+                </button>
+              </div>
+              <div className="border-t border-gray-100 pt-4">
+                <a href="#" className="text-sm font-medium text-[#1e3a5f] hover:underline flex items-center gap-1">
+                  Research Collaboration Network
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+                <p className="text-xs text-gray-500 mt-0.5">Connect with research groups at top universities. 20% discount for students.</p>
+                <button className="mt-2 text-xs bg-[#1e3a5f] text-white px-3 py-1.5 rounded-lg hover:bg-[#162d4a] w-full">
+                  Claim Offer
+                </button>
+              </div>
+            </div>
           </div>
-        )}
+
+          {/* Recent Chats */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-gray-900 text-sm">Recent Chats</h3>
+              <Link href="/messages" className="text-xs text-[#1e3a5f] hover:underline">View All</Link>
+            </div>
+            {conversations.length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-3">No chats yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {conversations.slice(0, 3).map(conv => (
+                  <Link
+                    key={conv.other_user_id}
+                    href={`/messages?with=${conv.other_user_id}`}
+                    className="flex items-center gap-2.5 hover:bg-gray-50 rounded-lg p-1.5 -mx-1.5 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white font-bold text-xs shrink-0">
+                      {conv.other_user_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-gray-900 truncate">{conv.other_user_name}</p>
+                        <span className="text-xs text-gray-400 shrink-0 ml-1">{formatTime(conv.latest_time)}</span>
+                      </div>
+                      <p className="text-xs text-gray-400 truncate">{conv.latest_message}</p>
+                    </div>
+                    {Number(conv.unread_count) > 0 && (
+                      <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </AppShell>
   )
 }
