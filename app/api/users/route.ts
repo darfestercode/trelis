@@ -3,15 +3,60 @@ import pool from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
-  const field = searchParams.get('field')
-  const role = searchParams.get('role')
-  const experience = searchParams.get('experience')
-  const country = searchParams.get('country')
-  const search = searchParams.get('search')
+  const search = searchParams.get('search') || searchParams.get('q') || ''
+  const country = searchParams.get('country') || ''
+  const university = searchParams.get('university') || ''
+  const year = searchParams.get('year') || ''
+  // comma-separated tag names e.g. ?tags=RMIT,Python
+  const tagsParam = searchParams.get('tags') || ''
+  const tagNames = tagsParam ? tagsParam.split(',').map(t => t.trim()).filter(Boolean) : []
 
   try {
-    let query = `
-      SELECT u.id, u.email, u.name, u.university, u.major, u.year, u.country, u.bio, u.profile_photo_url, u.created_at,
+    const params: unknown[] = []
+    let p = 1
+
+    const conditions: string[] = []
+
+    if (search) {
+      conditions.push(`(u.name ILIKE $${p} OR u.university ILIKE $${p} OR u.major ILIKE $${p})`)
+      params.push(`%${search}%`)
+      p++
+    }
+
+    if (country) {
+      conditions.push(`u.country ILIKE $${p}`)
+      params.push(`%${country}%`)
+      p++
+    }
+
+    if (university) {
+      conditions.push(`u.university ILIKE $${p}`)
+      params.push(`%${university}%`)
+      p++
+    }
+
+    if (year) {
+      conditions.push(`u.year = $${p}`)
+      params.push(parseInt(year))
+      p++
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+    // If tag filters, use subquery to find users who have at least one matching tag
+    const tagSubquery = tagNames.length > 0
+      ? `AND u.id IN (
+          SELECT ut2.user_id FROM user_tags ut2
+          JOIN tags t2 ON ut2.tag_id = t2.id
+          WHERE t2.name ILIKE ANY(ARRAY[${tagNames.map(() => `$${p++}`).join(',')}])
+        )`
+      : ''
+    if (tagNames.length > 0) {
+      tagNames.forEach(name => params.push(`%${name}%`))
+    }
+
+    const query = `
+      SELECT u.id, u.name, u.university, u.major, u.year, u.country, u.bio, u.profile_photo_url, u.created_at,
         COALESCE(
           json_agg(json_build_object('id', t.id, 'name', t.name, 'category', t.category))
           FILTER (WHERE t.id IS NOT NULL), '[]'
@@ -19,57 +64,10 @@ export async function GET(request: NextRequest) {
       FROM users u
       LEFT JOIN user_tags ut ON u.id = ut.user_id
       LEFT JOIN tags t ON ut.tag_id = t.id
+      ${whereClause} ${tagSubquery}
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
     `
-    const conditions: string[] = []
-    const params: unknown[] = []
-    let paramIdx = 1
-
-    if (search) {
-      conditions.push(`(u.name ILIKE $${paramIdx} OR u.university ILIKE $${paramIdx})`)
-      params.push(`%${search}%`)
-      paramIdx++
-    }
-
-    if (country) {
-      conditions.push(`u.country ILIKE $${paramIdx}`)
-      params.push(`%${country}%`)
-      paramIdx++
-    }
-
-    if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ')
-    }
-
-    query += ' GROUP BY u.id'
-
-    // Filter by tag category after grouping
-    if (field || role || experience) {
-      const havingClauses: string[] = []
-      if (field) {
-        havingClauses.push(
-          `bool_or(t.category = 'field' AND t.name ILIKE $${paramIdx})`
-        )
-        params.push(`%${field}%`)
-        paramIdx++
-      }
-      if (role) {
-        havingClauses.push(
-          `bool_or(t.category = 'role' AND t.name ILIKE $${paramIdx})`
-        )
-        params.push(`%${role}%`)
-        paramIdx++
-      }
-      if (experience) {
-        havingClauses.push(
-          `bool_or(t.category = 'experience' AND t.name ILIKE $${paramIdx})`
-        )
-        params.push(`%${experience}%`)
-        paramIdx++
-      }
-      query += ' HAVING ' + havingClauses.join(' AND ')
-    }
-
-    query += ' ORDER BY u.created_at DESC'
 
     const result = await pool.query(query, params)
     return Response.json({ users: result.rows })
