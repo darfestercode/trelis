@@ -3,14 +3,15 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AppShell from '@/app/components/AppShell'
-import { User, Message, Conversation } from '@/types'
+import { useUser } from '@/app/components/UserContext'
+import { Message, Conversation, User } from '@/types'
 
 function MessagesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const withUserId = searchParams.get('with')
 
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const { user: currentUser, loading: authLoading } = useUser()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedUserId, setSelectedUserId] = useState<number | null>(
     withUserId ? parseInt(withUserId) : null
@@ -29,11 +30,8 @@ function MessagesContent() {
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
 
   useEffect(() => {
-    fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(d => {
-      if (!d) { router.push('/login'); return }
-      setCurrentUser(d.user)
-    })
-  }, [router])
+    if (!authLoading && !currentUser) router.push('/login')
+  }, [authLoading, currentUser, router])
 
   const fetchConversations = useCallback(async () => {
     const res = await fetch('/api/messages')
@@ -76,19 +74,41 @@ function MessagesContent() {
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault()
-    if (!newMessage.trim() || !selectedUserId || sending) return
+    if (!newMessage.trim() || !selectedUserId || sending || !currentUser) return
+
+    const text = newMessage.trim()
+    setNewMessage('') // Clear input immediately
+
+    // Optimistic update — message appears instantly
+    const tempId = Date.now()
+    const optimistic: Message = {
+      id: tempId,
+      sender_id: currentUser.id,
+      recipient_id: selectedUserId,
+      message_text: text,
+      is_read: false,
+      created_at: new Date().toISOString(),
+    }
+    setMessages(prev => [...prev, optimistic])
+
     setSending(true)
     try {
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipient_id: selectedUserId, message_text: newMessage.trim() }),
+        body: JSON.stringify({ recipient_id: selectedUserId, message_text: text }),
       })
       if (res.ok) {
-        setNewMessage('')
-        await fetchMessages(selectedUserId)
-        await fetchConversations()
+        // Refresh both in parallel, replace optimistic with real data
+        await Promise.all([fetchMessages(selectedUserId), fetchConversations()])
+      } else {
+        // Revert on error
+        setMessages(prev => prev.filter(m => m.id !== tempId))
+        setNewMessage(text)
       }
+    } catch {
+      setMessages(prev => prev.filter(m => m.id !== tempId))
+      setNewMessage(text)
     } finally {
       setSending(false)
     }
@@ -145,7 +165,7 @@ function MessagesContent() {
               </button>
             </div>
 
-            {/* Search bar — full width, inset only vertically */}
+            {/* Search bar */}
             <div
               className="absolute inset-x-3 inset-y-2 flex items-center gap-2 rounded-xl border border-[#334155]"
               style={{
@@ -177,7 +197,7 @@ function MessagesContent() {
 
           </div>
 
-          {/* Search results — below the fixed header */}
+          {/* Search results */}
           {showSearch && searchResults.length > 0 && (
             <div className="px-2 py-2 border-b border-gray-200 space-y-0.5">
               {searchResults.map(u => (
@@ -204,7 +224,7 @@ function MessagesContent() {
                 {[1, 2, 3].map(i => <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse" />)}
               </div>
             ) : conversations.length === 0 ? (
-              <p className="text-center text-gray-400 text-xs py-8 px-4">No conversations yet. Start one with "+ New".</p>
+              <p className="text-center text-gray-400 text-xs py-8 px-4">No conversations yet. Start one with &quot;+ New&quot;.</p>
             ) : (
               conversations.map(conv => (
                 <button
@@ -256,7 +276,7 @@ function MessagesContent() {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">{selectedUserName}</p>
-                  <p className="text-xs text-gray-400">Online · Student</p>
+                  <p className="text-xs text-gray-400">Student</p>
                 </div>
               </div>
 

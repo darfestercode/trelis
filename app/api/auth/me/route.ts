@@ -34,7 +34,13 @@ export async function GET() {
       return Response.json({ error: 'User not found' }, { status: 404 })
     }
 
-    return Response.json({ user: result.rows[0] })
+    return new Response(JSON.stringify({ user: result.rows[0] }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
+      },
+    })
   } catch (err) {
     console.error('Me error:', err)
     return Response.json({ error: 'Internal server error' }, { status: 500 })

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ThemeProvider from "./components/ThemeProvider";
 import { GoalProgressProvider } from "./components/GoalProgressContext";
+import { UserProvider } from "./components/UserContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,7 +25,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-gray-50">
-        <ThemeProvider><GoalProgressProvider>{children}</GoalProgressProvider></ThemeProvider>
+        <ThemeProvider>
+          <UserProvider>
+            <GoalProgressProvider>{children}</GoalProgressProvider>
+          </UserProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

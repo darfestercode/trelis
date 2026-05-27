@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import AppShell from '@/app/components/AppShell'
-import { User, Conversation } from '@/types'
+import { useUser } from '@/app/components/UserContext'
+import { Conversation } from '@/types'
 
 interface Post {
   id: number
@@ -34,7 +35,7 @@ function yearLabel(y: number | null) {
 
 export default function FeedPage() {
   const router = useRouter()
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const { user: currentUser, loading: authLoading } = useUser()
   const [posts, setPosts] = useState<Post[]>([])
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [postText, setPostText] = useState('')
@@ -42,30 +43,37 @@ export default function FeedPage() {
   const [connected, setConnected] = useState<Set<number>>(new Set())
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  // Redirect if not authenticated
   useEffect(() => {
-    fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(d => {
-      if (!d) { router.push('/login'); return }
-      setCurrentUser(d.user)
-    })
-    fetch('/api/posts').then(r => r.json()).then(d => setPosts(d.posts ?? []))
-    fetch('/api/messages').then(r => r.json()).then(d => setConversations(d.conversations ?? []))
-    fetch('/api/connections').then(r => r.json()).then(d => {
-      const ids = new Set<number>((d.connections ?? []).map((c: { other_user_id: number }) => c.other_user_id))
+    if (!authLoading && !currentUser) router.push('/login')
+  }, [authLoading, currentUser, router])
+
+  // Fetch data in parallel on mount
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/posts').then(r => r.json()).catch(() => ({ posts: [] })),
+      fetch('/api/messages').then(r => r.json()).catch(() => ({ conversations: [] })),
+      fetch('/api/connections').then(r => r.json()).catch(() => ({ connections: [] })),
+    ]).then(([postsData, msgsData, connsData]) => {
+      setPosts(postsData.posts ?? [])
+      setConversations(msgsData.conversations ?? [])
+      const ids = new Set<number>((connsData.connections ?? []).map((c: { other_user_id: number }) => c.other_user_id))
       setConnected(ids)
     })
-  }, [router])
+  }, [])
 
   async function handlePost(e: React.FormEvent) {
     e.preventDefault()
     if (!postText.trim() || submitting) return
+    const text = postText.trim()
+    setPostText('')
     setSubmitting(true)
     const res = await fetch('/api/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: postText.trim() }),
+      body: JSON.stringify({ content: text }),
     })
     if (res.ok) {
-      setPostText('')
       const data = await fetch('/api/posts').then(r => r.json())
       setPosts(data.posts ?? [])
     }
@@ -73,12 +81,12 @@ export default function FeedPage() {
   }
 
   async function handleConnect(userId: number) {
+    setConnected(prev => new Set([...prev, userId]))
     await fetch('/api/connections', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ recipient_id: userId }),
     })
-    setConnected(prev => new Set([...prev, userId]))
   }
 
   function formatTime(ts: string) {

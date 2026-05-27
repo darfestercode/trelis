@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AppShell from '@/app/components/AppShell'
-import { User } from '@/types'
+import { useUser } from '@/app/components/UserContext'
 
 interface Network {
   id: number
@@ -17,7 +17,7 @@ interface Network {
 
 export default function NetworksPage() {
   const router = useRouter()
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const { user: currentUser, loading: authLoading } = useUser()
   const [networks, setNetworks] = useState<Network[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -26,23 +26,26 @@ export default function NetworksPage() {
   const [joiningId, setJoiningId] = useState<number | null>(null)
 
   useEffect(() => {
-    fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(d => {
-      if (!d) { router.push('/login'); return }
-      setCurrentUser(d.user)
-    })
+    if (!authLoading && !currentUser) router.push('/login')
+  }, [authLoading, currentUser, router])
+
+  useEffect(() => {
     fetch('/api/networks').then(r => r.json()).then(d => {
       setNetworks(d.networks ?? [])
       setLoading(false)
     })
-  }, [router])
+  }, [])
 
   async function handleJoin(e: React.MouseEvent, networkId: number) {
-    e.stopPropagation() // don't navigate to detail page
+    e.stopPropagation()
     if (joiningId) return
     setJoiningId(networkId)
+    // Optimistic: flip is_member and increment count
+    setNetworks(prev => prev.map(n => n.id === networkId
+      ? { ...n, is_member: true, member_count: Number(n.member_count) + 1 }
+      : n
+    ))
     await fetch(`/api/networks/${networkId}`, { method: 'POST' })
-    const data = await fetch('/api/networks').then(r => r.json())
-    setNetworks(data.networks ?? [])
     setJoiningId(null)
   }
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AppShell from '@/app/components/AppShell'
 import { useGoalProgress } from '@/app/components/GoalProgressContext'
+import { useUser } from '@/app/components/UserContext'
 
 interface Milestone {
   id: number
@@ -26,6 +27,7 @@ function timeAgo(ts: string) {
 
 export default function RoadmapPage() {
   const router = useRouter()
+  const { user, loading: authLoading } = useUser()
   const { refreshProgress } = useGoalProgress()
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [loading, setLoading] = useState(true)
@@ -38,11 +40,12 @@ export default function RoadmapPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
   useEffect(() => {
-    fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(d => {
-      if (!d) { router.push('/login'); return }
-    })
+    if (!authLoading && !user) router.push('/login')
+  }, [authLoading, user, router])
+
+  useEffect(() => {
     loadMilestones()
-  }, [router])
+  }, [])
 
   async function loadMilestones() {
     const data = await fetch('/api/milestones').then(r => r.json())
@@ -103,13 +106,20 @@ export default function RoadmapPage() {
   }
 
   async function toggleComplete(m: Milestone) {
-    await fetch('/api/milestones', {
+    // Optimistic update — instant UI response
+    const next = !m.is_completed
+    setMilestones(prev => prev.map(x => x.id === m.id ? { ...x, is_completed: next } : x))
+    refreshProgress()
+    // Fire API in background
+    fetch('/api/milestones', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ milestone_id: m.id, is_completed: !m.is_completed }),
+      body: JSON.stringify({ milestone_id: m.id, is_completed: next }),
+    }).catch(() => {
+      // Revert on failure
+      setMilestones(prev => prev.map(x => x.id === m.id ? { ...x, is_completed: m.is_completed } : x))
+      refreshProgress()
     })
-    setMilestones(prev => prev.map(x => x.id === m.id ? { ...x, is_completed: !x.is_completed } : x))
-    refreshProgress()
   }
 
   return (
