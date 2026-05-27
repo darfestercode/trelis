@@ -41,6 +41,58 @@ CREATE TABLE IF NOT EXISTS network_members (
   PRIMARY KEY (network_id, user_id)
 );
 
+-- Roles & permission system
+CREATE TABLE IF NOT EXISTS network_roles (
+  id          SERIAL PRIMARY KEY,
+  network_id  INTEGER REFERENCES networks(id) ON DELETE CASCADE,
+  name        VARCHAR(100) NOT NULL,
+  color       VARCHAR(7)  DEFAULT '#99aab5',
+  position    INTEGER     DEFAULT 0,
+  is_everyone BOOLEAN     DEFAULT false,
+  permissions INTEGER     DEFAULT 0,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS network_member_roles (
+  network_id  INTEGER REFERENCES networks(id)       ON DELETE CASCADE,
+  user_id     INTEGER REFERENCES users(id)           ON DELETE CASCADE,
+  role_id     INTEGER REFERENCES network_roles(id)   ON DELETE CASCADE,
+  PRIMARY KEY (network_id, user_id, role_id)
+);
+
+-- Network channels & messages (must come before channel_permission_overrides)
+CREATE TABLE IF NOT EXISTS network_channels (
+  id         SERIAL PRIMARY KEY,
+  network_id INTEGER REFERENCES networks(id) ON DELETE CASCADE,
+  name       VARCHAR(100) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS channel_messages (
+  id         SERIAL PRIMARY KEY,
+  channel_id INTEGER REFERENCES network_channels(id) ON DELETE CASCADE,
+  user_id    INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  content    TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Channel permission overrides (after both network_roles and network_channels)
+CREATE TABLE IF NOT EXISTS channel_permission_overrides (
+  channel_id  INTEGER REFERENCES network_channels(id) ON DELETE CASCADE,
+  role_id     INTEGER REFERENCES network_roles(id)    ON DELETE CASCADE,
+  allow       INTEGER DEFAULT 0,
+  deny        INTEGER DEFAULT 0,
+  PRIMARY KEY (channel_id, role_id)
+);
+
+-- Seed @everyone roles for any networks created before this migration
+INSERT INTO network_roles (network_id, name, color, is_everyone, permissions, position)
+SELECT id, '@everyone', '#99aab5', true, 3, 0
+FROM networks n
+WHERE NOT EXISTS (
+  SELECT 1 FROM network_roles WHERE network_id = n.id AND is_everyone = true
+);
+
 -- Academic roadmap milestones
 CREATE TABLE IF NOT EXISTS milestones (
   id           SERIAL PRIMARY KEY,

@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
+const BRAND = '#335293'
+
 export default function SignupPage() {
   const router = useRouter()
   const [error, setError] = useState('')
@@ -26,7 +28,6 @@ export default function SignupPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -37,12 +38,7 @@ export default function SignupPage() {
         }),
       })
       const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error ?? 'Signup failed')
-        return
-      }
-
+      if (!res.ok) { setError(data.error ?? 'Signup failed'); return }
       router.push('/dashboard')
     } catch {
       setError('Something went wrong. Please try again.')
@@ -52,35 +48,70 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 justify-center">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">T</span>
+    <main
+      style={{
+        minHeight: '100vh',
+        background: '#F9FAFB',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '48px 16px',
+        fontFamily: 'var(--font-inter, -apple-system, sans-serif)',
+      }}
+    >
+      <div style={{ width: '100%', maxWidth: '420px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <Link
+            href="/"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}
+          >
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #335293 0%, #4A6BAE 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span style={{ color: '#fff', fontWeight: 700, fontSize: '16px' }}>T</span>
             </div>
-            <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+            <span style={{ fontSize: '22px', fontWeight: 700, color: BRAND, letterSpacing: '-0.3px' }}>
               Trelis
             </span>
           </Link>
-          <p className="text-gray-500 mt-2">Create your account and start connecting</p>
+          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '15px' }}>
+            Create your account and start connecting
+          </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Sign Up</h1>
+        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '32px' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', marginBottom: '24px' }}>
+            Create Account
+          </h1>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-6 text-sm">
+            <div
+              style={{
+                background: '#FFF2F2',
+                border: '1px solid #FECACA',
+                color: '#991B1B',
+                borderRadius: '10px',
+                padding: '12px 14px',
+                marginBottom: '20px',
+                fontSize: '14px',
+              }}
+            >
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Required fields first */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email <span className="text-red-500">*</span>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
+                Email <span style={{ color: '#EF4444' }}>*</span>
               </label>
               <input
                 name="email"
@@ -90,13 +121,13 @@ export default function SignupPage() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="you@email.com"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+                className="auth-input"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password <span className="text-red-500">*</span>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
+                Password <span style={{ color: '#EF4444' }}>*</span>
               </label>
               <input
                 name="password"
@@ -105,13 +136,13 @@ export default function SignupPage() {
                 value={form.password}
                 onChange={handleChange}
                 placeholder="At least 6 characters"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+                className="auth-input"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name <span className="text-red-500">*</span>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
+                Full Name <span style={{ color: '#EF4444' }}>*</span>
               </label>
               <input
                 name="name"
@@ -120,38 +151,46 @@ export default function SignupPage() {
                 value={form.name}
                 onChange={handleChange}
                 placeholder="Jane Smith"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+                className="auth-input"
               />
             </div>
 
-            {/* Optional profile fields */}
-            <div className="pt-2">
-              <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-3">
+            <div style={{ paddingTop: '6px' }}>
+              <p
+                style={{
+                  fontSize: '11px',
+                  color: '#9CA3AF',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  fontWeight: 600,
+                  marginBottom: '12px',
+                }}
+              >
                 Optional — fill in now or later
               </p>
-              <div className="space-y-3">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <input
                   name="university"
                   type="text"
                   value={form.university}
                   onChange={handleChange}
                   placeholder="University (e.g. MIT, Oxford)"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+                  className="auth-input"
                 />
-                <div className="grid grid-cols-2 gap-3">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <input
                     name="major"
                     type="text"
                     value={form.major}
                     onChange={handleChange}
                     placeholder="Major"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+                    className="auth-input"
                   />
                   <select
                     name="year"
                     value={form.year}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 bg-white text-gray-500"
+                    className="auth-select"
                   >
                     <option value="">Year</option>
                     <option value="1">1st Year</option>
@@ -168,7 +207,7 @@ export default function SignupPage() {
                   value={form.country}
                   onChange={handleChange}
                   placeholder="Country"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+                  className="auth-input"
                 />
               </div>
             </div>
@@ -176,16 +215,28 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-md"
+              style={{
+                width: '100%',
+                background: loading ? '#6B8BC5' : BRAND,
+                color: '#fff',
+                padding: '12px',
+                borderRadius: '10px',
+                fontWeight: 600,
+                fontSize: '15px',
+                border: 'none',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                marginTop: '4px',
+                transition: 'background 0.15s',
+              }}
             >
               {loading ? 'Creating account…' : 'Create Account'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p style={{ textAlign: 'center', fontSize: '14px', color: '#6B7280', marginTop: '24px' }}>
             Already have an account?{' '}
-            <Link href="/login" className="text-indigo-600 font-medium hover:underline">
-              Login
+            <Link href="/login" style={{ color: BRAND, fontWeight: 600 }}>
+              Log in
             </Link>
           </p>
         </div>

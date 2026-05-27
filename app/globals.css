@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --brand-primary: #335293;
   --brand-light: #4A6BAE;
@@ -17,6 +20,72 @@
   --foreground: #111827;
 }
 
+/* ── Dark mode overrides ── */
+html.dark {
+  color-scheme: dark;
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+  --bg-hover: #1e293b;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border-light: #334155;
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+}
+
+html.dark .auth-input,
+html.dark .auth-select {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+html.dark .auth-input::placeholder { color: #64748b; }
+
+/* ── Dark mode: universal content overrides ──
+   Covers every page without touching individual files.
+   Specificity (0,2,0) beats Tailwind utility (0,1,0).        */
+
+/* Backgrounds */
+html.dark .bg-white          { background-color: #1e293b !important; }
+html.dark .bg-gray-50        { background-color: #162032 !important; }
+html.dark .bg-gray-100       { background-color: #1a2844 !important; }
+html.dark .hover\:bg-gray-50:hover  { background-color: #1a2844 !important; }
+html.dark .hover\:bg-gray-100:hover { background-color: #243351 !important; }
+
+/* Borders */
+html.dark .border-gray-100   { border-color: #253352 !important; }
+html.dark .border-gray-200   { border-color: #334155 !important; }
+html.dark .border-gray-300   { border-color: #475569 !important; }
+html.dark .divide-gray-100 > * + *,
+html.dark .divide-gray-200 > * + * { border-color: #334155 !important; }
+
+/* Text */
+html.dark .text-gray-900     { color: #f1f5f9 !important; }
+html.dark .text-gray-800     { color: #e2e8f0 !important; }
+html.dark .text-gray-700     { color: #cbd5e1 !important; }
+html.dark .text-gray-600     { color: #94a3b8 !important; }
+html.dark .text-gray-500     { color: #64748b !important; }
+html.dark .text-gray-400     { color: #475569 !important; }
+
+/* Placeholders */
+html.dark input::placeholder,
+html.dark textarea::placeholder { color: #475569; }
+
+/* Inputs & textareas that aren't .auth-input */
+html.dark input:not(.auth-input):not([type="checkbox"]):not([type="radio"]),
+html.dark textarea,
+html.dark select:not(.auth-select) {
+  background-color: transparent;
+  color: #f1f5f9;
+}
+
+/* Inline border utilities used on tags / badges */
+html.dark .border-red-200    { border-color: #7f1d1d !important; }
+html.dark .bg-red-50         { background-color: #2d0f0f !important; }
+html.dark .text-red-600      { color: #fca5a5 !important; }
+html.dark .text-red-500      { color: #f87171 !important; }
+
 * { box-sizing: border-box; }
 
 body {
@@ -28,3 +97,47 @@ body {
 }
 
 a { text-decoration: none; color: inherit; }
+
+.auth-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+}
+
+.auth-input:focus {
+  border-color: #335293;
+  box-shadow: 0 0 0 3px rgba(51, 82, 147, 0.12);
+}
+
+.auth-input::placeholder {
+  color: #9CA3AF;
+}
+
+.auth-select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+  appearance: none;
+  cursor: pointer;
+}
+
+.auth-select:focus {
+  border-color: #335293;
+  box-shadow: 0 0 0 3px rgba(51, 82, 147, 0.12);
+}
+
+.auth-select option { color: #111827; }

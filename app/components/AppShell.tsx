@@ -3,26 +3,34 @@
 import { useState } from 'react'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
+import { useGoalProgress } from './GoalProgressContext'
 
 interface AppShellProps {
   children: React.ReactNode
-  goalProgress?: number
+  raw?: boolean
 }
 
-export default function AppShell({ children, goalProgress = 0 }: AppShellProps) {
+export default function AppShell({ children, raw = false }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const { goalProgress } = useGoalProgress()
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f0f2f5]">
-      <Sidebar open={sidebarOpen} />
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <TopBar
-          onMenuToggle={() => setSidebarOpen((o) => !o)}
-          goalProgress={goalProgress}
-        />
-        <div className="flex-1 overflow-y-auto">
-          {children}
-        </div>
+    <div className="flex flex-col h-screen overflow-hidden bg-[#f0f2f5] dark:bg-[#0f172a]">
+      <TopBar
+        onMenuToggle={() => setSidebarOpen((o) => !o)}
+        goalProgress={goalProgress}
+      />
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <Sidebar open={sidebarOpen} />
+        {raw ? (
+          <div className="flex-1 overflow-hidden min-h-0">
+            {children}
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto">
+            {children}
+          </div>
+        )}
       </div>
     </div>
   )

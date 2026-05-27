@@ -23,6 +23,7 @@ export default function NetworksPage() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ name: '', description: '' })
   const [creating, setCreating] = useState(false)
+  const [joiningId, setJoiningId] = useState<number | null>(null)
 
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(d => {
@@ -34,6 +35,16 @@ export default function NetworksPage() {
       setLoading(false)
     })
   }, [router])
+
+  async function handleJoin(e: React.MouseEvent, networkId: number) {
+    e.stopPropagation() // don't navigate to detail page
+    if (joiningId) return
+    setJoiningId(networkId)
+    await fetch(`/api/networks/${networkId}`, { method: 'POST' })
+    const data = await fetch('/api/networks').then(r => r.json())
+    setNetworks(data.networks ?? [])
+    setJoiningId(null)
+  }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -123,7 +134,11 @@ export default function NetworksPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {myNetworks.map(n => (
-              <div key={n.id} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div
+                key={n.id}
+                onClick={() => router.push(`/networks/${n.id}`)}
+                className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-[#1e3a5f]/30 transition-all cursor-pointer"
+              >
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg bg-[#1e3a5f] flex items-center justify-center text-white font-bold text-sm shrink-0">
                     {n.name.charAt(0).toUpperCase()}
@@ -146,16 +161,29 @@ export default function NetworksPage() {
             <h2 className="text-base font-semibold text-gray-700 mb-4">Open Networks to Join</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {otherNetworks.map(n => (
-                <div key={n.id} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm opacity-80">
+                <div
+                  key={n.id}
+                  onClick={() => router.push(`/networks/${n.id}`)}
+                  className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-[#1e3a5f]/30 transition-all cursor-pointer"
+                >
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gray-300 flex items-center justify-center text-gray-600 font-bold text-sm shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-[#1e3a5f]/10 flex items-center justify-center text-[#1e3a5f] font-bold text-sm shrink-0">
                       {n.name.charAt(0).toUpperCase()}
                     </div>
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 text-sm">{n.name}</h3>
-                      {n.description && <p className="text-xs text-gray-500 mt-0.5">{n.description}</p>}
-                      <p className="text-xs text-gray-400 mt-1">{n.member_count} members</p>
+                      {n.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.description}</p>}
+                      <p className="text-xs text-gray-400 mt-1">
+                        {n.member_count} member{Number(n.member_count) !== 1 ? 's' : ''} · by {n.creator_name}
+                      </p>
                     </div>
+                    <button
+                      onClick={e => handleJoin(e, n.id)}
+                      disabled={joiningId === n.id}
+                      className="shrink-0 bg-[#1e3a5f] text-white text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#162d4a] disabled:opacity-60 transition-colors"
+                    >
+                      {joiningId === n.id ? '…' : 'Join'}
+                    </button>
                   </div>
                 </div>
               ))}

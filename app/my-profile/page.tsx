@@ -23,14 +23,6 @@ function timeAgo(ts: string) {
   return `${Math.floor(d / 30)} month${Math.floor(d / 30) > 1 ? 's' : ''} ago`
 }
 
-const BRAND = '#335293'
-const BRAND_LIGHT = '#4A6BAE'
-const TEXT_MAIN = '#111827'
-const TEXT_MUTED = '#6B7280'
-const BORDER = '#E5E7EB'
-const BG_CARD = '#FFFFFF'
-const BG_HOVER = '#F9FAFB'
-
 export default function MyProfilePage() {
   const router = useRouter()
   const [currentUser, setCurrentUser] = useState<ProfileUser | null>(null)
@@ -51,7 +43,6 @@ export default function MyProfilePage() {
       if (!meData) { router.push('/login'); return }
       const user: ProfileUser = meData.user
 
-      // Fetch full profile with counts
       fetch(`/api/users/${user.id}`).then(r => r.json()).then(profileData => {
         if (profileData.user) setCurrentUser(profileData.user)
       })
@@ -119,8 +110,8 @@ export default function MyProfilePage() {
   if (loading || !currentUser) {
     return (
       <AppShell>
-        <div style={{ margin: '0 auto', maxWidth: '1100px', padding: '2rem 2.5rem' }}>
-          <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', height: '300px' }} />
+        <div className="mx-auto max-w-[1100px] px-10 py-8">
+          <div className="bg-white border border-gray-200 rounded-xl h-[300px] animate-pulse" />
         </div>
       </AppShell>
     )
@@ -137,41 +128,44 @@ export default function MyProfilePage() {
 
   return (
     <AppShell>
-      <div style={{ margin: '0 auto', width: '100%', maxWidth: '1100px', padding: '2rem 2.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div className="mx-auto w-full max-w-[1100px] px-10 py-8 flex flex-col gap-8">
 
         {/* ── Hero Banner ── */}
-        <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', overflow: 'hidden', position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <div style={{ width: '100%', height: '140px', background: `linear-gradient(135deg, ${BRAND} 0%, ${BRAND_LIGHT} 100%)` }} />
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden relative shadow-sm">
+          <div className="w-full h-[140px] bg-gradient-to-br from-[#335293] to-[#4A6BAE]" />
 
           <button
             onClick={() => setEditing(!editing)}
-            style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(5px)', border: 'none', padding: '0.5rem 1rem', borderRadius: '100px', color: 'white', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}
+            className="absolute top-6 right-6 flex items-center gap-1.5 bg-white/20 backdrop-blur-sm border-0 px-4 py-2 rounded-full text-white font-semibold text-sm cursor-pointer hover:bg-white/30 transition-colors"
           >
             <Edit3 size={16} /> {editing ? 'Cancel Edit' : 'Edit Profile'}
           </button>
 
-          <div style={{ padding: '0 2.5rem 2.5rem 2.5rem', position: 'relative' }}>
-            <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: BG_CARD, border: `4px solid ${BG_CARD}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 800, color: BRAND, marginTop: '-60px', marginBottom: '1rem', boxShadow: '0 4px 15px rgba(0,0,0,0.08)' }}>
+          <div className="px-10 pb-10 relative">
+            <div className="w-[120px] h-[120px] rounded-full bg-white border-4 border-white flex items-center justify-center text-[2.5rem] font-extrabold text-[#335293] -mt-[60px] mb-4 shadow-md">
               {currentUser.name.charAt(0).toUpperCase()}
             </div>
 
-            <h1 style={{ fontSize: '2rem', fontWeight: 800, color: TEXT_MAIN, marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>
+            <h1 className="text-[2rem] font-extrabold text-gray-900 mb-1 tracking-tight">
               {currentUser.name}
             </h1>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', color: TEXT_MUTED, fontSize: '0.9rem', fontWeight: 500, marginTop: '0.5rem' }}>
+            <div className="flex flex-wrap gap-6 text-gray-500 text-sm font-medium mt-2">
               {yearLabel(currentUser.year) && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Briefcase size={16} color={BRAND} /> {yearLabel(currentUser.year)}{currentUser.major ? ` · ${currentUser.major}` : ''}
+                <span className="flex items-center gap-1.5">
+                  <Briefcase size={16} className="text-[#335293]" />
+                  {yearLabel(currentUser.year)}{currentUser.major ? ` · ${currentUser.major}` : ''}
                 </span>
               )}
               {currentUser.university && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <GraduationCap size={16} color={BRAND} /> {currentUser.university}
+                <span className="flex items-center gap-1.5">
+                  <GraduationCap size={16} className="text-[#335293]" />
+                  {currentUser.university}
                 </span>
               )}
               {currentUser.country && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <MapPin size={16} color={BRAND} /> {currentUser.country}
+                <span className="flex items-center gap-1.5">
+                  <MapPin size={16} className="text-[#335293]" />
+                  {currentUser.country}
                 </span>
               )}
             </div>
@@ -180,56 +174,49 @@ export default function MyProfilePage() {
 
         {/* Success banner */}
         {success && (
-          <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534', borderRadius: '12px', padding: '1rem 1.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
+          <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl px-6 py-4 text-sm font-medium">
             Profile saved successfully!
           </div>
         )}
 
         {/* ── Edit Form (inline) ── */}
         {editing && (
-          <div style={{ background: BG_CARD, border: `1px solid ${BRAND}`, borderRadius: '12px', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1.5rem', color: TEXT_MAIN }}>Edit Profile</h3>
+          <div className="bg-white border border-[#335293] rounded-xl p-8 shadow-sm">
+            <h3 className="text-xl font-bold mb-6 text-gray-900">Edit Profile</h3>
             {error && (
-              <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1.5rem', fontSize: '0.9rem' }}>{error}</div>
+              <div className="bg-red-50 border border-red-300 text-red-800 rounded-lg px-4 py-3 mb-6 text-sm">{error}</div>
             )}
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: TEXT_MAIN, marginBottom: '0.4rem' }}>Full Name</label>
+                <label className="block text-xs font-semibold text-gray-900 mb-1.5">Full Name</label>
                 <input name="name" type="text" required value={form.name} onChange={handleChange}
-                  style={{ width: '100%', padding: '0.75rem 1rem', border: `1px solid ${BORDER}`, borderRadius: '8px', fontSize: '0.95rem', outline: 'none', fontFamily: 'inherit' }}
-                  onFocus={e => e.currentTarget.style.borderColor = BRAND}
-                  onBlur={e => e.currentTarget.style.borderColor = BORDER}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm outline-none font-[inherit] focus:border-[#335293] bg-white text-gray-900 placeholder-gray-400"
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: TEXT_MAIN, marginBottom: '0.4rem' }}>Bio</label>
-                <textarea name="bio" rows={3} value={form.bio} onChange={handleChange} placeholder="Tell others about yourself, your interests, and what you're looking for…"
-                  style={{ width: '100%', padding: '0.75rem 1rem', border: `1px solid ${BORDER}`, borderRadius: '8px', fontSize: '0.95rem', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
-                  onFocus={e => e.currentTarget.style.borderColor = BRAND}
-                  onBlur={e => e.currentTarget.style.borderColor = BORDER}
+                <label className="block text-xs font-semibold text-gray-900 mb-1.5">Bio</label>
+                <textarea name="bio" rows={3} value={form.bio} onChange={handleChange}
+                  placeholder="Tell others about yourself, your interests, and what you're looking for…"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm outline-none resize-y font-[inherit] focus:border-[#335293] bg-white text-gray-900 placeholder-gray-400"
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: TEXT_MAIN, marginBottom: '0.4rem' }}>University</label>
+                <label className="block text-xs font-semibold text-gray-900 mb-1.5">University</label>
                 <input name="university" type="text" value={form.university} onChange={handleChange}
-                  style={{ width: '100%', padding: '0.75rem 1rem', border: `1px solid ${BORDER}`, borderRadius: '8px', fontSize: '0.95rem', outline: 'none', fontFamily: 'inherit' }}
-                  onFocus={e => e.currentTarget.style.borderColor = BRAND}
-                  onBlur={e => e.currentTarget.style.borderColor = BORDER}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm outline-none font-[inherit] focus:border-[#335293] bg-white text-gray-900 placeholder-gray-400"
                 />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: TEXT_MAIN, marginBottom: '0.4rem' }}>Major</label>
+                  <label className="block text-xs font-semibold text-gray-900 mb-1.5">Major</label>
                   <input name="major" type="text" value={form.major} onChange={handleChange}
-                    style={{ width: '100%', padding: '0.75rem 1rem', border: `1px solid ${BORDER}`, borderRadius: '8px', fontSize: '0.95rem', outline: 'none', fontFamily: 'inherit' }}
-                    onFocus={e => e.currentTarget.style.borderColor = BRAND}
-                    onBlur={e => e.currentTarget.style.borderColor = BORDER}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm outline-none font-[inherit] focus:border-[#335293] bg-white text-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: TEXT_MAIN, marginBottom: '0.4rem' }}>Year</label>
+                  <label className="block text-xs font-semibold text-gray-900 mb-1.5">Year</label>
                   <select name="year" value={form.year} onChange={handleChange}
-                    style={{ width: '100%', padding: '0.75rem 1rem', border: `1px solid ${BORDER}`, borderRadius: '8px', fontSize: '0.95rem', outline: 'none', background: 'white', fontFamily: 'inherit' }}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm outline-none font-[inherit] focus:border-[#335293] bg-white text-gray-900"
                   >
                     <option value="">Select year</option>
                     <option value="1">1st Year</option>
@@ -242,21 +229,19 @@ export default function MyProfilePage() {
                 </div>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: TEXT_MAIN, marginBottom: '0.4rem' }}>Country</label>
+                <label className="block text-xs font-semibold text-gray-900 mb-1.5">Country</label>
                 <input name="country" type="text" value={form.country} onChange={handleChange}
-                  style={{ width: '100%', padding: '0.75rem 1rem', border: `1px solid ${BORDER}`, borderRadius: '8px', fontSize: '0.95rem', outline: 'none', fontFamily: 'inherit' }}
-                  onFocus={e => e.currentTarget.style.borderColor = BRAND}
-                  onBlur={e => e.currentTarget.style.borderColor = BORDER}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm outline-none font-[inherit] focus:border-[#335293] bg-white text-gray-900 placeholder-gray-400"
                 />
               </div>
 
               {/* Tag selectors */}
               {Object.entries(tagsByCategory).map(([category, catTags]) => (
                 <div key={category}>
-                  <p style={{ fontSize: '0.85rem', fontWeight: 600, color: TEXT_MAIN, marginBottom: '0.6rem' }}>
+                  <p className="text-xs font-semibold text-gray-900 mb-2.5">
                     {categoryLabels[category] ?? category} Tags
                   </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div className="flex flex-wrap gap-2">
                     {catTags.map(tag => {
                       const selected = selectedTagIds.includes(tag.id)
                       return (
@@ -264,7 +249,11 @@ export default function MyProfilePage() {
                           key={tag.id}
                           type="button"
                           onClick={() => toggleTag(tag.id)}
-                          style={{ padding: '0.35rem 0.9rem', borderRadius: '100px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', border: `1px solid ${selected ? BRAND : BORDER}`, background: selected ? BRAND : 'white', color: selected ? 'white' : TEXT_MUTED, transition: 'all 0.15s' }}
+                          className={`px-3.5 py-1.5 rounded-full text-sm font-semibold cursor-pointer border transition-all ${
+                            selected
+                              ? 'bg-[#335293] text-white border-[#335293]'
+                              : 'bg-white text-gray-500 border-gray-200 hover:border-[#335293]'
+                          }`}
                         >
                           {tag.name}
                         </button>
@@ -274,13 +263,13 @@ export default function MyProfilePage() {
                 </div>
               ))}
 
-              <div style={{ display: 'flex', gap: '1rem', paddingTop: '0.5rem' }}>
+              <div className="flex gap-4 pt-2">
                 <button type="button" onClick={() => setEditing(false)}
-                  style={{ flex: 1, border: `1px solid ${BORDER}`, background: 'transparent', color: TEXT_MUTED, padding: '0.75rem', borderRadius: '8px', fontSize: '0.95rem', fontWeight: 500, cursor: 'pointer' }}>
+                  className="flex-1 border border-gray-200 bg-transparent text-gray-500 py-3 rounded-lg text-sm font-medium cursor-pointer hover:bg-gray-50 transition-colors">
                   Cancel
                 </button>
                 <button type="submit" disabled={saving}
-                  style={{ flex: 2, background: BRAND, color: 'white', border: 'none', padding: '0.75rem', borderRadius: '8px', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
+                  className="flex-[2] bg-[#335293] text-white border-0 py-3 rounded-lg text-sm font-semibold cursor-pointer disabled:opacity-60 hover:bg-[#2a4278] transition-colors">
                   {saving ? 'Saving…' : 'Save Profile'}
                 </button>
               </div>
@@ -290,22 +279,22 @@ export default function MyProfilePage() {
 
         {/* ── Two-column body (view mode) ── */}
         {!editing && (
-          <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+          <div className="flex gap-8 items-start">
 
             {/* Left column */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2rem', minWidth: 0 }}>
+            <div className="flex-1 flex flex-col gap-8 min-w-0">
 
               {/* About Me */}
               {currentUser.bio ? (
-                <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem', color: TEXT_MAIN }}>About Me</h3>
-                  <p style={{ color: TEXT_MAIN, fontSize: '1rem', lineHeight: 1.6 }}>{currentUser.bio}</p>
+                <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+                  <h3 className="text-xl font-bold mb-4 text-gray-900">About Me</h3>
+                  <p className="text-gray-900 text-base leading-relaxed">{currentUser.bio}</p>
                 </div>
               ) : (
-                <div style={{ background: BG_CARD, border: `1px dashed ${BORDER}`, borderRadius: '12px', padding: '2rem', textAlign: 'center' }}>
-                  <p style={{ color: TEXT_MUTED, fontSize: '0.95rem', marginBottom: '0.75rem' }}>No bio yet. Tell the community about yourself.</p>
+                <div className="bg-white border border-dashed border-gray-200 rounded-xl p-8 text-center">
+                  <p className="text-gray-500 text-sm mb-3">No bio yet. Tell the community about yourself.</p>
                   <button onClick={() => setEditing(true)}
-                    style={{ background: BRAND, color: 'white', border: 'none', padding: '0.5rem 1.25rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                    className="bg-[#335293] text-white border-0 px-5 py-2 rounded-lg text-sm font-semibold cursor-pointer hover:bg-[#2a4278] transition-colors">
                     Add Bio
                   </button>
                 </div>
@@ -313,11 +302,11 @@ export default function MyProfilePage() {
 
               {/* My Filter Tags */}
               {Object.keys(userTagsByCategory).length > 0 ? (
-                <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: TEXT_MAIN }}>My Filter Tags</h3>
+                <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-gray-900">My Filter Tags</h3>
                     <button onClick={() => setEditing(true)}
-                      style={{ background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: '6px', color: TEXT_MAIN, padding: '0.4rem 0.8rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      className="bg-transparent border border-gray-200 rounded-md text-gray-900 px-3 py-1.5 text-xs font-semibold cursor-pointer flex items-center gap-1 hover:bg-gray-50 transition-colors">
                       <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -325,18 +314,18 @@ export default function MyProfilePage() {
                       Manage Tags
                     </button>
                   </div>
-                  <p style={{ color: TEXT_MUTED, fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                  <p className="text-gray-500 text-sm mb-6 leading-relaxed">
                     Your active tags dictate how recruiters, study groups, and peers discover you in the network search algorithm.
                   </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div className="flex flex-col gap-6">
                     {Object.entries(userTagsByCategory).map(([category, tags]) => (
                       <div key={category}>
-                        <h4 style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: TEXT_MUTED, letterSpacing: '0.05em', marginBottom: '0.8rem' }}>
+                        <h4 className="text-xs uppercase text-gray-500 tracking-wider mb-3">
                           {categoryLabels[category] ?? category}
                         </h4>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <div className="flex flex-wrap gap-2">
                           {tags.map(t => (
-                            <span key={t.id} style={{ background: 'rgba(51, 82, 147, 0.08)', color: BRAND, border: '1px solid rgba(51, 82, 147, 0.2)', padding: '0.4rem 1rem', borderRadius: '100px', fontSize: '0.85rem', fontWeight: 600 }}>
+                            <span key={t.id} className="bg-[#335293]/10 text-[#335293] border border-[#335293]/20 px-4 py-1.5 rounded-full text-sm font-semibold">
                               {t.name}
                             </span>
                           ))}
@@ -346,10 +335,10 @@ export default function MyProfilePage() {
                   </div>
                 </div>
               ) : (
-                <div style={{ background: BG_CARD, border: `1px dashed ${BORDER}`, borderRadius: '12px', padding: '2rem', textAlign: 'center' }}>
-                  <p style={{ color: TEXT_MUTED, fontSize: '0.95rem', marginBottom: '0.75rem' }}>No tags selected. Tags help people find you.</p>
+                <div className="bg-white border border-dashed border-gray-200 rounded-xl p-8 text-center">
+                  <p className="text-gray-500 text-sm mb-3">No tags selected. Tags help people find you.</p>
                   <button onClick={() => setEditing(true)}
-                    style={{ background: BRAND, color: 'white', border: 'none', padding: '0.5rem 1.25rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>
+                    className="bg-[#335293] text-white border-0 px-5 py-2 rounded-lg text-sm font-semibold cursor-pointer hover:bg-[#2a4278] transition-colors">
                     Add Tags
                   </button>
                 </div>
@@ -357,23 +346,28 @@ export default function MyProfilePage() {
 
               {/* Recent Activity Planner */}
               {milestones.length > 0 && (
-                <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: TEXT_MAIN }}>Recent Activity Planner</h3>
-                    <Link href="/roadmap" style={{ fontSize: '0.85rem', color: BRAND, fontWeight: 500, textDecoration: 'none' }}>View Roadmap →</Link>
+                <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-gray-900">Recent Activity Planner</h3>
+                    <Link href="/roadmap" className="text-sm text-[#335293] font-medium no-underline hover:underline">View Roadmap →</Link>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div className="flex flex-col gap-6">
                     {milestones.map((item, i) => (
-                      <div key={item.id} style={{ display: 'flex', gap: '1rem', position: 'relative' }}>
+                      <div key={item.id} className="flex gap-4 relative">
                         {i !== milestones.length - 1 && (
-                          <div style={{ position: 'absolute', top: '30px', left: '19px', width: '2px', height: 'calc(100% - 10px)', background: BORDER }} />
+                          <div className="absolute top-[30px] left-[19px] w-0.5 h-[calc(100%-10px)] bg-gray-200" />
                         )}
-                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: item.is_completed ? 'rgba(0, 202, 114, 0.1)' : 'rgba(51, 82, 147, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          {item.is_completed ? <Target size={18} color="#00ca72" /> : <Activity size={18} color={BRAND} />}
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                          item.is_completed ? 'bg-green-100' : 'bg-[#335293]/10'
+                        }`}>
+                          {item.is_completed
+                            ? <Target size={18} className="text-green-500" />
+                            : <Activity size={18} className="text-[#335293]" />
+                          }
                         </div>
-                        <div style={{ paddingTop: '0.35rem' }}>
-                          <p style={{ color: TEXT_MAIN, fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.2rem' }}>{item.title}</p>
-                          <span style={{ color: TEXT_MUTED, fontSize: '0.8rem' }}>{timeAgo(item.created_at)}</span>
+                        <div className="pt-1.5">
+                          <p className="text-gray-900 font-semibold text-sm mb-0.5">{item.title}</p>
+                          <span className="text-gray-500 text-xs">{timeAgo(item.created_at)}</span>
                         </div>
                       </div>
                     ))}
@@ -383,39 +377,39 @@ export default function MyProfilePage() {
             </div>
 
             {/* Right rail */}
-            <aside style={{ width: '300px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <aside className="w-[300px] shrink-0 flex flex-col gap-8">
 
-              <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem', color: TEXT_MAIN }}>Impact Metrics</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div style={{ background: BG_HOVER, border: `1px solid ${BORDER}`, padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: BRAND, marginBottom: '0.2rem' }}>
+              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <h3 className="text-base font-bold mb-5 text-gray-900">Impact Metrics</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg text-center">
+                    <div className="text-[1.8rem] font-extrabold text-[#335293] mb-0.5">
                       {currentUser.connections_count ?? 0}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Connections</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wider">Connections</div>
                   </div>
-                  <div style={{ background: BG_HOVER, border: `1px solid ${BORDER}`, padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: BRAND, marginBottom: '0.2rem' }}>
+                  <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg text-center">
+                    <div className="text-[1.8rem] font-extrabold text-[#335293] mb-0.5">
                       {currentUser.networks_count ?? 0}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Networks</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wider">Networks</div>
                   </div>
                 </div>
-                <div style={{ marginTop: '1rem', background: BG_HOVER, border: `1px solid ${BORDER}`, padding: '1rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: TEXT_MAIN, fontWeight: 600, fontSize: '0.9rem' }}>
-                    <Eye size={18} color={TEXT_MUTED} /> Profile Views
+                <div className="mt-4 bg-gray-50 border border-gray-200 p-4 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 text-gray-900 font-semibold text-sm">
+                    <Eye size={18} className="text-gray-500" /> Profile Views
                   </div>
-                  <span style={{ fontWeight: 800, fontSize: '1.1rem', color: TEXT_MAIN }}>—</span>
+                  <span className="font-extrabold text-lg text-gray-900">—</span>
                 </div>
               </div>
 
-              <div style={{ background: BRAND, color: 'white', borderRadius: '12px', padding: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.5rem' }}>Expand your reach</h3>
-                <p style={{ fontSize: '0.85rem', lineHeight: 1.5, opacity: 0.9, marginBottom: '1.25rem' }}>
+              <div className="bg-[#335293] text-white rounded-xl p-6">
+                <h3 className="text-base font-bold mb-2">Expand your reach</h3>
+                <p className="text-sm leading-relaxed opacity-90 mb-5">
                   Users with 10+ strictly defined tags receive 40% more study group invites.
                 </p>
                 <button onClick={() => setEditing(true)}
-                  style={{ width: '100%', padding: '0.6rem', background: 'white', color: BRAND, border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>
+                  className="w-full py-2.5 bg-white text-[#335293] border-0 rounded-md font-bold cursor-pointer text-sm hover:bg-gray-100 transition-colors">
                   Add new Tags
                 </button>
               </div>

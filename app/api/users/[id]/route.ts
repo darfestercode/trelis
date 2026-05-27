@@ -13,17 +13,15 @@ export async function GET(
     const result = await pool.query(
       `SELECT u.id, u.email, u.name, u.university, u.major, u.year, u.country, u.bio, u.profile_photo_url, u.created_at,
         COALESCE(
-          json_agg(DISTINCT json_build_object('id', t.id, 'name', t.name, 'category', t.category))
-          FILTER (WHERE t.id IS NOT NULL), '[]'
+          (SELECT json_agg(json_build_object('id', t.id, 'name', t.name, 'category', t.category))
+           FROM tags t JOIN user_tags ut ON t.id = ut.tag_id WHERE ut.user_id = u.id),
+          '[]'
         ) AS tags,
         (SELECT COUNT(*) FROM connections c
          WHERE (c.requester_id = u.id OR c.recipient_id = u.id) AND c.status = 'accepted') AS connections_count,
         (SELECT COUNT(*) FROM network_members nm WHERE nm.user_id = u.id) AS networks_count
        FROM users u
-       LEFT JOIN user_tags ut ON u.id = ut.user_id
-       LEFT JOIN tags t ON ut.tag_id = t.id
-       WHERE u.id = $1
-       GROUP BY u.id`,
+       WHERE u.id = $1`,
       [id]
     )
 

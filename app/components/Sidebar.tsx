@@ -68,6 +68,17 @@ const NAV = [
       </svg>
     ),
   },
+  {
+    label: 'Settings',
+    href: '/settings',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
 ]
 
 export default function Sidebar({ open }: SidebarProps) {
@@ -81,16 +92,16 @@ export default function Sidebar({ open }: SidebarProps) {
 
   return (
     <aside
-      className={`flex flex-col bg-white border-r border-gray-200 transition-all duration-200 shrink-0 ${
+      className={`flex flex-col bg-white dark:bg-[#0f172a] border-r border-gray-200 dark:border-[#1e293b] transition-all duration-200 shrink-0 ${
         open ? 'w-64' : 'w-0 overflow-hidden'
       }`}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-100">
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-100 dark:border-[#1e293b]">
         <div className="w-8 h-8 bg-[#1e3a5f] rounded-lg flex items-center justify-center shrink-0">
           <span className="text-white font-bold text-sm">T</span>
         </div>
-        <span className="text-xl font-bold text-[#1e3a5f] whitespace-nowrap">Trelis</span>
+        <span className="text-xl font-bold text-[#1e3a5f] dark:text-white whitespace-nowrap">Trelis</span>
       </div>
 
       {/* Nav */}
@@ -104,10 +115,10 @@ export default function Sidebar({ open }: SidebarProps) {
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                 active
                   ? 'bg-[#1e3a5f] text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1e293b]'
               }`}
             >
-              <span className={active ? 'text-white' : 'text-gray-500'}>
+              <span className={active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}>
                 {item.icon}
               </span>
               {item.label}
@@ -117,10 +128,10 @@ export default function Sidebar({ open }: SidebarProps) {
       </nav>
 
       {/* Logout */}
-      <div className="px-3 py-4 border-t border-gray-100">
+      <div className="px-3 py-4 border-t border-gray-100 dark:border-[#1e293b]">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 w-full transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1e293b] w-full transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}

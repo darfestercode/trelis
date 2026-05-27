@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 import pool from '@/lib/db'
 import { verifyJWT } from '@/lib/auth'
+import { DEFAULT_EVERYONE_PERMS, DEFAULT_MODERATOR_PERMS, DEFAULT_ADMIN_PERMS } from '@/lib/permissions'
 
 async function getAuthUserId(): Promise<number | null> {
   const cookieStore = await cookies()
@@ -54,6 +55,18 @@ export async function POST(request: NextRequest) {
     await client.query(
       'INSERT INTO network_members (network_id, user_id, role) VALUES ($1, $2, $3)',
       [network.id, userId, 'creator']
+    )
+    await client.query(
+      'INSERT INTO network_channels (network_id, name) VALUES ($1, $2), ($1, $3)',
+      [network.id, 'general', 'resources']
+    )
+    // Seed default roles
+    await client.query(
+      `INSERT INTO network_roles (network_id, name, color, is_everyone, permissions, position)
+       VALUES ($1, '@everyone', '#99aab5', true, $2, 0),
+              ($1, 'Moderator', '#e67e22', false, $3, 1),
+              ($1, 'Admin',     '#e74c3c', false, $4, 2)`,
+      [network.id, DEFAULT_EVERYONE_PERMS, DEFAULT_MODERATOR_PERMS, DEFAULT_ADMIN_PERMS]
     )
     await client.query('COMMIT')
     return Response.json({ network }, { status: 201 })
