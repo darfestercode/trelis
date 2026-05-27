@@ -8,6 +8,17 @@ import { Message, Conversation, User } from '@/types'
 
 // ─── Attachment renderer ───────────────────────────────────────────────────
 function Attachment({ msg, isMine }: { msg: Message; isMine: boolean }) {
+  // Code snippets store their content in attachment_name — no URL needed
+  if (msg.attachment_type === 'code') {
+    return (
+      <pre className={`mt-1 text-xs rounded-xl p-3 overflow-x-auto max-w-sm font-mono whitespace-pre-wrap ${
+        isMine ? 'bg-white/10 text-white' : 'bg-gray-200 text-gray-900'
+      }`}>
+        {msg.attachment_name}
+      </pre>
+    )
+  }
+
   if (!msg.attachment_url) return null
 
   if (msg.attachment_type === 'image') {
@@ -30,16 +41,6 @@ function Attachment({ msg, isMine }: { msg: Message; isMine: boolean }) {
         controls
         className="max-w-[280px] rounded-xl mt-1"
       />
-    )
-  }
-
-  if (msg.attachment_type === 'code') {
-    return (
-      <pre className={`mt-1 text-xs rounded-xl p-3 overflow-x-auto max-w-sm font-mono whitespace-pre-wrap ${
-        isMine ? 'bg-white/10 text-white' : 'bg-gray-200 text-gray-900'
-      }`}>
-        {msg.attachment_name}
-      </pre>
     )
   }
 
