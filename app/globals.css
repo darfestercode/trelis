@@ -97,6 +97,7 @@ body {
 }
 
 a { text-decoration: none; color: inherit; }
+a.text-white { color: #ffffff !important; }
 
 .auth-input {
   width: 100%;
