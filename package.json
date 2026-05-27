@@ -10,6 +10,7 @@
     "migrate": "npx tsx scripts/migrate.ts"
   },
   "dependencies": {
+    "@vercel/blob": "^2.4.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "jsonwebtoken": "^9.0.3",

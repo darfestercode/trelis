@@ -6,15 +6,9 @@ import { verifyJWT } from '@/lib/auth'
 export async function GET() {
   const cookieStore = await cookies()
   const token = cookieStore.get('auth_token')?.value
-
-  if (!token) {
-    return Response.json({ error: 'Not authenticated' }, { status: 401 })
-  }
-
+  if (!token) return Response.json({ error: 'Not authenticated' }, { status: 401 })
   const payload = verifyJWT(token)
-  if (!payload) {
-    return Response.json({ error: 'Invalid token' }, { status: 401 })
-  }
+  if (!payload) return Response.json({ error: 'Invalid token' }, { status: 401 })
 
   try {
     const result = await pool.query(
@@ -28,7 +22,7 @@ export async function GET() {
          SELECT
            CASE WHEN m.sender_id = $1 THEN m.recipient_id ELSE m.sender_id END AS other_user_id,
            CASE WHEN m.sender_id = $1 THEN ru.name ELSE su.name END AS other_user_name,
-           m.message_text AS latest_message,
+           COALESCE(m.message_text, m.attachment_name, 'Attachment') AS latest_message,
            m.created_at AS latest_time,
            (m.recipient_id = $1 AND NOT m.is_read) AS is_unread,
            ROW_NUMBER() OVER (
@@ -45,7 +39,6 @@ export async function GET() {
        ORDER BY latest_time DESC`,
       [payload.userId]
     )
-
     return Response.json({ conversations: result.rows })
   } catch (err) {
     console.error('Get conversations error:', err)
@@ -56,42 +49,31 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies()
   const token = cookieStore.get('auth_token')?.value
-
-  if (!token) {
-    return Response.json({ error: 'Not authenticated' }, { status: 401 })
-  }
-
+  if (!token) return Response.json({ error: 'Not authenticated' }, { status: 401 })
   const payload = verifyJWT(token)
-  if (!payload) {
-    return Response.json({ error: 'Invalid token' }, { status: 401 })
-  }
+  if (!payload) return Response.json({ error: 'Invalid token' }, { status: 401 })
 
   let body: Record<string, unknown>
-  try {
-    body = await request.json()
-  } catch {
-    return Response.json({ error: 'Invalid JSON' }, { status: 400 })
-  }
+  try { body = await request.json() } catch { return Response.json({ error: 'Invalid JSON' }, { status: 400 }) }
 
-  const { recipient_id, message_text } = body as {
+  const { recipient_id, message_text, attachment_url, attachment_type, attachment_name } = body as {
     recipient_id: number
-    message_text: string
+    message_text?: string
+    attachment_url?: string
+    attachment_type?: string
+    attachment_name?: string
   }
 
-  if (!recipient_id || !message_text?.trim()) {
-    return Response.json({ error: 'recipient_id and message_text are required' }, { status: 400 })
-  }
-
-  if (recipient_id === payload.userId) {
-    return Response.json({ error: 'Cannot message yourself' }, { status: 400 })
-  }
+  if (!recipient_id) return Response.json({ error: 'recipient_id required' }, { status: 400 })
+  if (!message_text?.trim() && !attachment_url) return Response.json({ error: 'message or attachment required' }, { status: 400 })
+  if (recipient_id === payload.userId) return Response.json({ error: 'Cannot message yourself' }, { status: 400 })
 
   try {
     const result = await pool.query(
-      `INSERT INTO messages (sender_id, recipient_id, message_text, is_read)
-       VALUES ($1, $2, $3, false)
-       RETURNING id, sender_id, recipient_id, message_text, is_read, created_at`,
-      [payload.userId, recipient_id, message_text.trim()]
+      `INSERT INTO messages (sender_id, recipient_id, message_text, attachment_url, attachment_type, attachment_name, is_read)
+       VALUES ($1, $2, $3, $4, $5, $6, false)
+       RETURNING id, sender_id, recipient_id, message_text, attachment_url, attachment_type, attachment_name, is_read, created_at`,
+      [payload.userId, recipient_id, message_text?.trim() ?? null, attachment_url ?? null, attachment_type ?? null, attachment_name ?? null]
     )
     return Response.json({ message: result.rows[0] }, { status: 201 })
   } catch (err) {

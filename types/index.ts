@@ -16,7 +16,10 @@ export interface Message {
   id: number
   sender_id: number
   recipient_id: number
-  message_text: string
+  message_text: string | null
+  attachment_url: string | null
+  attachment_type: 'image' | 'video' | 'file' | 'code' | null
+  attachment_name: string | null
   is_read: boolean
   created_at: string
   sender_name?: string
