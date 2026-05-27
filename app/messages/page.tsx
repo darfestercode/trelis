@@ -54,13 +54,17 @@ function MessagesContent() {
     setLoadingMessages(false)
   }, [])
 
+  // Only fetch messages when the selected conversation actually changes
   useEffect(() => {
-    if (selectedUserId) {
-      fetchMessages(selectedUserId)
-      const conv = conversations.find(c => c.other_user_id === selectedUserId)
-      if (conv) setSelectedUserName(conv.other_user_name)
-    }
-  }, [selectedUserId, fetchMessages, conversations])
+    if (selectedUserId) fetchMessages(selectedUserId)
+  }, [selectedUserId, fetchMessages])
+
+  // Update displayed name whenever conversations list refreshes — never triggers fetchMessages
+  useEffect(() => {
+    if (!selectedUserId || conversations.length === 0) return
+    const conv = conversations.find(c => c.other_user_id === selectedUserId)
+    if (conv) setSelectedUserName(conv.other_user_name)
+  }, [selectedUserId, conversations])
 
   useEffect(() => {
     if (withUserId && conversations.length > 0) {
