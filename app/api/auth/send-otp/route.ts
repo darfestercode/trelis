@@ -5,19 +5,6 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-async function ensureOtpTable() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS email_otps (
-      id         SERIAL PRIMARY KEY,
-      email      VARCHAR(255) NOT NULL,
-      otp_hash   VARCHAR(255) NOT NULL,
-      expires_at TIMESTAMPTZ NOT NULL,
-      verified   BOOLEAN DEFAULT false,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )
-  `)
-}
-
 function hashOtp(code: string): string {
   return createHash('sha256').update(code).digest('hex')
 }
@@ -39,8 +26,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await ensureOtpTable()
-
     // Check if email is already taken
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email])
     if (existing.rows.length > 0) {
