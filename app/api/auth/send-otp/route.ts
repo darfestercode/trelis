@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     // Send email via Resend
     const { error: resendError } = await resend.emails.send({
-      from: 'Trelis <onboarding@resend.dev>',
+      from: 'Trelis <noreply@trelis.pro>',
       to: email,
       subject: 'Your Trelis verification code',
       html: `

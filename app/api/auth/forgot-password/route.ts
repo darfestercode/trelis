@@ -52,11 +52,14 @@ export async function POST(request: NextRequest) {
       [userId, token, expiresAt]
     )
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
+    // Build URL from request host so it always matches the actual deployment
+    const host = request.headers.get('host') ?? 'trelis.pro'
+    const proto = host.includes('localhost') ? 'http' : 'https'
+    const baseUrl = `${proto}://${host}`
     const resetUrl = `${baseUrl}/reset-password?token=${token}`
 
     const { data, error: resendError } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL ?? 'Trelis <onboarding@resend.dev>',
+      from: 'Trelis <noreply@trelis.pro>',
       to: email,
       subject: 'Reset your Trelis password',
       html: `
