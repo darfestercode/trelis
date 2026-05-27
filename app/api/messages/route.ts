@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!recipient_id) return Response.json({ error: 'recipient_id required' }, { status: 400 })
-  if (!message_text?.trim() && !attachment_url) return Response.json({ error: 'message or attachment required' }, { status: 400 })
+  if (!message_text?.trim() && !attachment_url && !attachment_name?.trim()) return Response.json({ error: 'message or attachment required' }, { status: 400 })
   if (recipient_id === payload.userId) return Response.json({ error: 'Cannot message yourself' }, { status: 400 })
 
   try {
