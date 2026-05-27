@@ -158,11 +158,13 @@ function MessagesContent() {
     if (!silent) setLoadingMessages(false)
   }, [])
 
-  // Poll for new messages every 3 s when a conversation is open
+  // Poll for new messages every 5 s — pause when tab is hidden
   useEffect(() => {
     if (!selectedUserId) return
 
     const poll = async () => {
+      // Skip if tab is not visible (saves bandwidth when user switches tabs)
+      if (document.visibilityState === 'hidden') return
       const uid = selectedUserIdRef.current
       if (!uid) return
       const url = lastMessageTimeRef.current
@@ -174,7 +176,6 @@ function MessagesContent() {
       const newMsgs: Message[] = data.messages ?? []
       if (newMsgs.length === 0) return
       setMessages(prev => {
-        // Avoid duplicates: filter out any temp/optimistic ids
         const existingIds = new Set(prev.map(m => m.id))
         const truly_new = newMsgs.filter(m => !existingIds.has(m.id))
         if (truly_new.length === 0) return prev
@@ -182,11 +183,10 @@ function MessagesContent() {
         lastMessageTimeRef.current = merged[merged.length - 1].created_at
         return merged
       })
-      // Refresh conversation list silently when new messages arrive
       fetchConversations()
     }
 
-    const id = setInterval(poll, 3000)
+    const id = setInterval(poll, 5000)
     return () => clearInterval(id)
   }, [selectedUserId, fetchConversations])
 

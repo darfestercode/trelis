@@ -105,7 +105,9 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
     shouldScrollRef.current = true
     setMessages([])
     loadMessages(activeChannelId)
-    const interval = setInterval(() => loadMessages(activeChannelId), 5000)
+    const interval = setInterval(() => {
+      if (document.visibilityState !== 'hidden') loadMessages(activeChannelId)
+    }, 5000)
     return () => clearInterval(interval)
   }, [activeChannelId, loadMessages])
 
