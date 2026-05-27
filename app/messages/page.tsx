@@ -99,10 +99,12 @@ function MessagesContent() {
         body: JSON.stringify({ recipient_id: selectedUserId, message_text: text }),
       })
       if (res.ok) {
-        // Refresh both in parallel, replace optimistic with real data
-        await Promise.all([fetchMessages(selectedUserId), fetchConversations()])
+        const data = await res.json()
+        // Swap optimistic entry for the real message — no loading flash
+        setMessages(prev => prev.map(m => m.id === tempId ? data.message : m))
+        // Silently refresh conversations sidebar (no loading state)
+        fetchConversations()
       } else {
-        // Revert on error
         setMessages(prev => prev.filter(m => m.id !== tempId))
         setNewMessage(text)
       }
