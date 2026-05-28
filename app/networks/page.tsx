@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import AppShell from '@/app/components/AppShell'
 import { useUser } from '@/app/components/UserContext'
@@ -9,6 +9,7 @@ interface Network {
   id: number
   name: string
   description: string | null
+  creator_id: number
   creator_name: string
   member_count: number
   is_member: boolean
@@ -25,6 +26,20 @@ export default function NetworksPage() {
   const [creating, setCreating] = useState(false)
   const [joiningId, setJoiningId] = useState<number | null>(null)
 
+  // Edit state
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editDesc, setEditDesc] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  // Delete state
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  // Dropdown state
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+  const menuRef = useRef<HTMLDivElement | null>(null)
+
   useEffect(() => {
     if (!authLoading && !currentUser) router.push('/login')
   }, [authLoading, currentUser, router])
@@ -36,11 +51,21 @@ export default function NetworksPage() {
     })
   }, [])
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
   async function handleJoin(e: React.MouseEvent, networkId: number) {
     e.stopPropagation()
     if (joiningId) return
     setJoiningId(networkId)
-    // Optimistic: flip is_member and increment count
     setNetworks(prev => prev.map(n => n.id === networkId
       ? { ...n, is_member: true, member_count: Number(n.member_count) + 1 }
       : n
@@ -67,8 +92,46 @@ export default function NetworksPage() {
     setCreating(false)
   }
 
+  function startEdit(e: React.MouseEvent, n: Network) {
+    e.stopPropagation()
+    setOpenMenuId(null)
+    setEditingId(n.id)
+    setEditName(n.name)
+    setEditDesc(n.description ?? '')
+  }
+
+  async function handleSaveEdit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editName.trim() || saving || editingId === null) return
+    setSaving(true)
+    const res = await fetch(`/api/networks/${editingId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: editName.trim(), description: editDesc.trim() || null }),
+    })
+    if (res.ok) {
+      setNetworks(prev => prev.map(n =>
+        n.id === editingId ? { ...n, name: editName.trim(), description: editDesc.trim() || null } : n
+      ))
+      setEditingId(null)
+    }
+    setSaving(false)
+  }
+
+  async function handleDelete() {
+    if (deleteId === null || deleting) return
+    setDeleting(true)
+    const res = await fetch(`/api/networks/${deleteId}`, { method: 'DELETE' })
+    if (res.ok) {
+      setNetworks(prev => prev.filter(n => n.id !== deleteId))
+    }
+    setDeleteId(null)
+    setDeleting(false)
+  }
+
   const myNetworks = networks.filter(n => n.is_member)
   const otherNetworks = networks.filter(n => !n.is_member)
+  const deleteTarget = networks.find(n => n.id === deleteId)
 
   return (
     <AppShell>
@@ -131,31 +194,118 @@ export default function NetworksPage() {
           <div className="bg-white rounded-xl border border-red-200 bg-red-50 p-6">
             <p className="text-red-600 font-semibold text-sm">No networks yet</p>
             <p className="text-red-500 text-xs mt-1">
-              Create your first network using the button above, or join one in the Discover page.
+              Create your first network using the button above, or join one below.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {myNetworks.map(n => (
-              <div
-                key={n.id}
-                onClick={() => router.push(`/networks/${n.id}`)}
-                className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-[#1e3a5f]/30 transition-all cursor-pointer"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#1e3a5f] flex items-center justify-center text-white font-bold text-sm shrink-0">
-                    {n.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-gray-900 text-sm">{n.name}</h3>
-                    {n.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.description}</p>}
-                    <p className="text-xs text-gray-400 mt-2">
-                      {n.member_count} member{Number(n.member_count) !== 1 ? 's' : ''} · created by {n.creator_name}
-                    </p>
-                  </div>
+            {myNetworks.map(n => {
+              const isOwner = currentUser?.id === n.creator_id
+              const isEditing = editingId === n.id
+
+              return (
+                <div
+                  key={n.id}
+                  onClick={() => !isEditing && router.push(`/networks/${n.id}`)}
+                  className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-[#1e3a5f]/30 transition-all cursor-pointer relative"
+                >
+                  {isEditing ? (
+                    /* ── Inline edit form ── */
+                    <form
+                      onSubmit={handleSaveEdit}
+                      onClick={e => e.stopPropagation()}
+                      className="space-y-2"
+                    >
+                      <input
+                        autoFocus
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        placeholder="Network name"
+                        required
+                        className="w-full px-3 py-1.5 border border-[#1e3a5f]/40 rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/30"
+                      />
+                      <input
+                        value={editDesc}
+                        onChange={e => setEditDesc(e.target.value)}
+                        placeholder="Description (optional)"
+                        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20"
+                      />
+                      <div className="flex gap-2 justify-end pt-1">
+                        <button
+                          type="button"
+                          onClick={e => { e.stopPropagation(); setEditingId(null) }}
+                          className="text-xs text-gray-500 px-3 py-1.5 rounded-lg hover:bg-gray-100"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={saving}
+                          className="text-xs bg-[#1e3a5f] text-white px-3 py-1.5 rounded-lg hover:bg-[#162d4a] disabled:opacity-60"
+                        >
+                          {saving ? 'Saving…' : 'Save'}
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    /* ── Normal card view ── */
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-[#1e3a5f] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                        {n.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-gray-900 text-sm">{n.name}</h3>
+                        {n.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.description}</p>}
+                        <p className="text-xs text-gray-400 mt-2">
+                          {n.member_count} member{Number(n.member_count) !== 1 ? 's' : ''} · {isOwner ? 'you created this' : `by ${n.creator_name}`}
+                        </p>
+                      </div>
+
+                      {/* Owner 3-dot menu */}
+                      {isOwner && (
+                        <div className="relative shrink-0" ref={openMenuId === n.id ? menuRef : null}>
+                          <button
+                            onClick={e => { e.stopPropagation(); setOpenMenuId(openMenuId === n.id ? null : n.id) }}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                              <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                            </svg>
+                          </button>
+
+                          {openMenuId === n.id && (
+                            <div
+                              onClick={e => e.stopPropagation()}
+                              className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-xl shadow-lg py-1 min-w-[140px]"
+                            >
+                              <button
+                                onClick={e => startEdit(e, n)}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                                Rename
+                              </button>
+                              <button
+                                onClick={e => { e.stopPropagation(); setOpenMenuId(null); setDeleteId(n.id) }}
+                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                </svg>
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
@@ -194,6 +344,46 @@ export default function NetworksPage() {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation modal */}
+      {deleteId !== null && (
+        <div
+          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+          onClick={() => !deleting && setDeleteId(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 text-center mb-2">Delete Network</h3>
+            <p className="text-sm text-gray-500 text-center mb-6">
+              Are you sure you want to delete <strong className="text-gray-700">&quot;{deleteTarget?.name}&quot;</strong>?
+              This will remove all members, channels, and messages. This cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteId(null)}
+                disabled={deleting}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-60"
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   )
 }

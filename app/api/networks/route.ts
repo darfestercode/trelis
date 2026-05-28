@@ -18,6 +18,7 @@ export async function GET() {
   try {
     const result = await pool.query(
       `SELECT n.id, n.name, n.description, n.created_at,
+        n.creator_id,
         u.name AS creator_name,
         COUNT(nm.user_id) AS member_count,
         bool_or(nm.user_id = $1) AS is_member

@@ -61,6 +61,58 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   }
 }
 
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const userId = await getAuthUserId()
+  if (!userId) return Response.json({ error: 'Not authenticated' }, { status: 401 })
+
+  const { id } = await params
+  const networkId = parseInt(id)
+  if (isNaN(networkId)) return Response.json({ error: 'Invalid network id' }, { status: 400 })
+
+  let body: Record<string, unknown>
+  try { body = await req.json() } catch { return Response.json({ error: 'Invalid JSON' }, { status: 400 }) }
+
+  const { name, description } = body as { name?: string; description?: string }
+  if (!name?.trim()) return Response.json({ error: 'Name is required' }, { status: 400 })
+
+  try {
+    const result = await pool.query(
+      'UPDATE networks SET name = $1, description = $2 WHERE id = $3 AND creator_id = $4 RETURNING id, name, description',
+      [name.trim(), description ?? null, networkId, userId]
+    )
+    if (result.rows.length === 0) {
+      return Response.json({ error: 'Network not found or not authorised' }, { status: 403 })
+    }
+    return Response.json({ network: result.rows[0] })
+  } catch (err) {
+    console.error('Network rename error:', err)
+    return Response.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const userId = await getAuthUserId()
+  if (!userId) return Response.json({ error: 'Not authenticated' }, { status: 401 })
+
+  const { id } = await params
+  const networkId = parseInt(id)
+  if (isNaN(networkId)) return Response.json({ error: 'Invalid network id' }, { status: 400 })
+
+  try {
+    const result = await pool.query(
+      'DELETE FROM networks WHERE id = $1 AND creator_id = $2 RETURNING id',
+      [networkId, userId]
+    )
+    if (result.rows.length === 0) {
+      return Response.json({ error: 'Network not found or not authorised' }, { status: 403 })
+    }
+    return Response.json({ success: true })
+  } catch (err) {
+    console.error('Network delete error:', err)
+    return Response.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const userId = await getAuthUserId()
   if (!userId) return Response.json({ error: 'Not authenticated' }, { status: 401 })
