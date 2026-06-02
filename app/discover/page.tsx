@@ -45,7 +45,7 @@ function DiscoverInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const { user: currentUser, loading: authLoading } = useUser()
+  const { user: currentUser, loggedOut } = useUser()
   const [users, setUsers] = useState<User[]>([])
   const [networks, setNetworks] = useState<Network[]>([])
   const [connected, setConnected] = useState<Set<number>>(new Set())
@@ -58,8 +58,8 @@ function DiscoverInner() {
   const [activeYear, setActiveYear] = useState<string>('')
 
   useEffect(() => {
-    if (!authLoading && !currentUser) router.push('/login')
-  }, [authLoading, currentUser, router])
+    if (loggedOut) router.push('/login')
+  }, [loggedOut, router])
 
   useEffect(() => {
     if (!currentUser) return

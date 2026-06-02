@@ -104,7 +104,7 @@ function MessagesContent() {
   const searchParams = useSearchParams()
   const withUserId = searchParams.get('with')
 
-  const { user: currentUser, loading: authLoading } = useUser()
+  const { user: currentUser, loggedOut } = useUser()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [selectedUserId, setSelectedUserId] = useState<number | null>(
     withUserId ? parseInt(withUserId) : null
@@ -129,8 +129,8 @@ function MessagesContent() {
     messagesEndRef.current?.scrollIntoView({ behavior })
 
   useEffect(() => {
-    if (!authLoading && !currentUser) router.push('/login')
-  }, [authLoading, currentUser, router])
+    if (loggedOut) router.push('/login')
+  }, [loggedOut, router])
 
   // Keep ref in sync for use inside polling interval
   useEffect(() => { selectedUserIdRef.current = selectedUserId }, [selectedUserId])

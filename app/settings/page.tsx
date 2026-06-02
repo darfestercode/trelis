@@ -55,7 +55,7 @@ export default function SettingsPage() {
   const router = useRouter()
   const { theme, toggle } = useTheme()
   const isDark = theme === 'dark'
-  const { user: authUser, loading: authLoading } = useUser()
+  const { user: authUser, loggedOut } = useUser()
 
   const [user, setUser] = useState<User | null>(null)
 
@@ -78,12 +78,12 @@ export default function SettingsPage() {
   const [deleteMsg, setDeleteMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
-    if (!authLoading && !authUser) { router.push('/login'); return }
+    if (loggedOut) { router.push('/login'); return }
     if (authUser) {
       setUser(authUser)
       setProfile({ email: authUser.email ?? '' })
     }
-  }, [authLoading, authUser, router])
+  }, [loggedOut, authUser, router])
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault()

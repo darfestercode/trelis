@@ -27,7 +27,7 @@ function timeAgo(ts: string) {
 
 export default function MyProfilePage() {
   const router = useRouter()
-  const { user: authUser, loading: authLoading } = useUser()
+  const { user: authUser, loggedOut } = useUser()
   const [currentUser, setCurrentUser] = useState<ProfileUser | null>(null)
   const [allTags, setAllTags] = useState<Tag[]>([])
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
@@ -39,8 +39,8 @@ export default function MyProfilePage() {
   const [form, setForm] = useState({ name: '', bio: '', university: '', major: '', year: '', country: '' })
 
   useEffect(() => {
-    if (!authLoading && !authUser) { router.push('/login'); return }
-  }, [authLoading, authUser, router])
+    if (loggedOut) { router.push('/login'); return }
+  }, [loggedOut, router])
 
   useEffect(() => {
     if (!authUser) return

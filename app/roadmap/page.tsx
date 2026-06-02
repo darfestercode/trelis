@@ -27,7 +27,7 @@ function timeAgo(ts: string) {
 
 export default function RoadmapPage() {
   const router = useRouter()
-  const { user, loading: authLoading } = useUser()
+  const { user, loggedOut } = useUser()
   const { refreshProgress } = useGoalProgress()
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [loading, setLoading] = useState(true)
@@ -40,8 +40,8 @@ export default function RoadmapPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
   useEffect(() => {
-    if (!authLoading && !user) router.push('/login')
-  }, [authLoading, user, router])
+    if (loggedOut) router.push('/login')
+  }, [loggedOut, router])
 
   useEffect(() => {
     loadMilestones()

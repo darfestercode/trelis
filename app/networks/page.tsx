@@ -18,7 +18,7 @@ interface Network {
 
 export default function NetworksPage() {
   const router = useRouter()
-  const { user: currentUser, loading: authLoading } = useUser()
+  const { user: currentUser, loggedOut } = useUser()
   const [networks, setNetworks] = useState<Network[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -41,8 +41,8 @@ export default function NetworksPage() {
   const menuRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    if (!authLoading && !currentUser) router.push('/login')
-  }, [authLoading, currentUser, router])
+    if (loggedOut) router.push('/login')
+  }, [loggedOut, router])
 
   useEffect(() => {
     fetch('/api/networks').then(r => r.json()).then(d => {

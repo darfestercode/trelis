@@ -37,7 +37,7 @@ function yearLabel(y: number | null) {
 
 export default function FeedPage() {
   const router = useRouter()
-  const { user: currentUser, loading: authLoading } = useUser()
+  const { user: currentUser, loggedOut } = useUser()
   const [posts, setPosts] = useState<Post[]>([])
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [postText, setPostText] = useState('')
@@ -48,10 +48,10 @@ export default function FeedPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Redirect if not authenticated
+  // Redirect only on a confirmed 401 from /api/auth/me — not on transient DB/network errors
   useEffect(() => {
-    if (!authLoading && !currentUser) router.push('/login')
-  }, [authLoading, currentUser, router])
+    if (loggedOut) router.push('/login')
+  }, [loggedOut, router])
 
   // Fetch data in parallel on mount
   useEffect(() => {
