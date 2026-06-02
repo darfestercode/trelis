@@ -136,9 +136,43 @@ export default function FeedPage() {
 
   return (
     <AppShell>
-      <div className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col lg:flex-row gap-5 lg:gap-6">
-        {/* Main feed */}
+      <div className="max-w-3xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
         <div className="flex-1 min-w-0 space-y-5">
+          {/* Recent Chats */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-gray-900 text-sm">Recent Chats</h3>
+              <Link href="/messages" className="text-xs text-[#1e3a5f] hover:underline">View All</Link>
+            </div>
+            {conversations.length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-3">No chats yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {conversations.slice(0, 3).map(conv => (
+                  <Link
+                    key={conv.other_user_id}
+                    href={`/messages?with=${conv.other_user_id}`}
+                    className="flex items-center gap-2.5 hover:bg-gray-50 rounded-lg p-1.5 -mx-1.5 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white font-bold text-xs shrink-0">
+                      {conv.other_user_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-gray-900 truncate">{conv.other_user_name}</p>
+                        <span className="text-xs text-gray-400 shrink-0 ml-1">{formatTime(conv.latest_time)}</span>
+                      </div>
+                      <p className="text-xs text-gray-400 truncate">{conv.latest_message}</p>
+                    </div>
+                    {Number(conv.unread_count) > 0 && (
+                      <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Post composer */}
           <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
             <form onSubmit={handlePost}>
@@ -280,78 +314,6 @@ export default function FeedPage() {
               </div>
             ))
           )}
-        </div>
-
-        {/* Right sidebar */}
-        <div className="w-full lg:w-72 lg:shrink-0 space-y-5">
-          {/* Updates */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-gray-900 text-sm">Updates</h3>
-              <span className="text-xs text-gray-400 border border-gray-200 px-2 py-0.5 rounded">PROMOTED</span>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <a href="#" className="text-sm font-medium text-[#1e3a5f] hover:underline flex items-center gap-1">
-                  Student Opportunities Hub
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-                <p className="text-xs text-gray-500 mt-0.5">Discover internships, grants, and accelerators for students worldwide.</p>
-                <button className="mt-2 text-xs border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 w-full">
-                  Learn More
-                </button>
-              </div>
-              <div className="border-t border-gray-100 pt-4">
-                <a href="#" className="text-sm font-medium text-[#1e3a5f] hover:underline flex items-center gap-1">
-                  Research Collaboration Network
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-                <p className="text-xs text-gray-500 mt-0.5">Connect with research groups at top universities. 20% discount for students.</p>
-                <button className="mt-2 text-xs bg-[#1e3a5f] text-white px-3 py-1.5 rounded-lg hover:bg-[#162d4a] w-full">
-                  Claim Offer
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Chats */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-gray-900 text-sm">Recent Chats</h3>
-              <Link href="/messages" className="text-xs text-[#1e3a5f] hover:underline">View All</Link>
-            </div>
-            {conversations.length === 0 ? (
-              <p className="text-xs text-gray-400 text-center py-3">No chats yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {conversations.slice(0, 3).map(conv => (
-                  <Link
-                    key={conv.other_user_id}
-                    href={`/messages?with=${conv.other_user_id}`}
-                    className="flex items-center gap-2.5 hover:bg-gray-50 rounded-lg p-1.5 -mx-1.5 transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white font-bold text-xs shrink-0">
-                      {conv.other_user_name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-gray-900 truncate">{conv.other_user_name}</p>
-                        <span className="text-xs text-gray-400 shrink-0 ml-1">{formatTime(conv.latest_time)}</span>
-                      </div>
-                      <p className="text-xs text-gray-400 truncate">{conv.latest_message}</p>
-                    </div>
-                    {Number(conv.unread_count) > 0 && (
-                      <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-                    )}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </AppShell>
