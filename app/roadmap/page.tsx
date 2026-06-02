@@ -124,10 +124,10 @@ export default function RoadmapPage() {
 
   return (
     <AppShell>
-      <div className="max-w-5xl mx-auto px-6 py-6 flex gap-6">
+      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex gap-6">
         {/* Main content */}
         <div className="flex-1 min-w-0">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-sm">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-full border-2 border-[#1e3a5f] flex items-center justify-center">
                 <svg className="w-6 h-6 text-[#1e3a5f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

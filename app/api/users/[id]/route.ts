@@ -3,15 +3,39 @@ import { cookies } from 'next/headers'
 import pool from '@/lib/db'
 import { verifyJWT } from '@/lib/auth'
 
+let profileViewsColumnEnsured = false
+async function ensureProfileViewsColumn() {
+  if (profileViewsColumnEnsured) return
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_views INTEGER NOT NULL DEFAULT 0`)
+  profileViewsColumnEnsured = true
+}
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+  const targetId = parseInt(id)
 
   try {
+    await ensureProfileViewsColumn()
+  } catch (err) {
+    console.error('Failed to ensure profile_views column:', err)
+  }
+
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get('auth_token')?.value
+    const viewerId = token ? verifyJWT(token)?.userId ?? null : null
+
+    if (viewerId && viewerId !== targetId) {
+      pool.query('UPDATE users SET profile_views = profile_views + 1 WHERE id = $1', [targetId])
+        .catch(err => console.error('Failed to increment profile_views:', err))
+    }
+
     const result = await pool.query(
       `SELECT u.id, u.email, u.name, u.university, u.major, u.year, u.country, u.bio, u.profile_photo_url, u.created_at,
+        COALESCE(u.profile_views, 0) AS profile_views,
         COALESCE(
           (SELECT json_agg(json_build_object('id', t.id, 'name', t.name, 'category', t.category))
            FROM tags t JOIN user_tags ut ON t.id = ut.tag_id WHERE ut.user_id = u.id),

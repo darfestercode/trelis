@@ -332,7 +332,9 @@ function MessagesContent() {
 
       <div className="flex h-full overflow-hidden">
         {/* ── Inbox sidebar ─────────────────────────────────────── */}
-        <div className="w-72 shrink-0 bg-white border-r border-gray-200 flex flex-col">
+        <div className={`w-full md:w-72 md:shrink-0 bg-white border-r border-gray-200 flex-col ${
+          selectedUserId ? 'hidden md:flex' : 'flex'
+        }`}>
           <div className="relative border-b border-gray-200 overflow-hidden" style={{ height: '56px' }}>
             <div
               className="absolute inset-0 flex items-center justify-between px-4"
@@ -435,7 +437,9 @@ function MessagesContent() {
         </div>
 
         {/* ── Thread ────────────────────────────────────────────── */}
-        <div className="flex-1 flex flex-col bg-white overflow-hidden">
+        <div className={`flex-1 flex-col bg-white overflow-hidden ${
+          selectedUserId ? 'flex' : 'hidden md:flex'
+        }`}>
           {!selectedUserId ? (
             <div className="flex-1 flex items-center justify-center text-gray-400">
               <div className="text-center">
@@ -449,18 +453,28 @@ function MessagesContent() {
           ) : (
             <>
               {/* Thread header */}
-              <div className="px-5 h-[56px] border-b border-gray-200 flex items-center gap-3 shrink-0">
+              <div className="px-3 sm:px-5 h-[56px] border-b border-gray-200 flex items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  aria-label="Back to inbox"
+                  onClick={() => setSelectedUserId(null)}
+                  className="md:hidden p-1 -ml-1 text-gray-600"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
                 <div className="w-9 h-9 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white font-bold text-xs shrink-0">
                   {selectedUserName.charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">{selectedUserName}</p>
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 text-sm truncate">{selectedUserName}</p>
                   <p className="text-xs text-gray-400">Student</p>
                 </div>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+              <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-3">
                 {loadingMessages ? (
                   <div className="space-y-3">
                     {[1, 2, 3].map(i => (

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import AppShell from '@/app/components/AppShell'
 import { User } from '@/types'
+import { useUser } from '@/app/components/UserContext'
 
 const BRAND = '#335293'
 
@@ -44,7 +45,7 @@ function DiscoverInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const { user: currentUser, loading: authLoading } = useUser()
   const [users, setUsers] = useState<User[]>([])
   const [networks, setNetworks] = useState<Network[]>([])
   const [connected, setConnected] = useState<Set<number>>(new Set())
@@ -57,16 +58,18 @@ function DiscoverInner() {
   const [activeYear, setActiveYear] = useState<string>('')
 
   useEffect(() => {
-    fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(d => {
-      if (!d) { router.push('/login'); return }
-      setCurrentUser(d.user)
-    })
+    if (!authLoading && !currentUser) router.push('/login')
+  }, [authLoading, currentUser, router])
+
+  useEffect(() => {
+    if (!currentUser) return
     fetch('/api/networks').then(r => r.json()).then(d => setNetworks(d.networks ?? []))
     fetch('/api/connections').then(r => r.json()).then(d => {
       setConnected(new Set((d.connections ?? []).map((c: { other_user_id: number }) => c.other_user_id)))
     })
     fetch('/api/tags').then(r => r.json()).then(d => setAllTags(d.tags ?? []))
-  }, [router])
+  }, [currentUser])
+
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -127,7 +130,7 @@ function DiscoverInner() {
 
   return (
     <AppShell>
-      <div className="max-w-[1100px] mx-auto px-6 py-7 flex flex-col gap-7">
+      <div className="max-w-[1100px] mx-auto px-3 sm:px-6 py-4 sm:py-7 flex flex-col gap-5 sm:gap-7">
 
         {/* Header */}
         <div>
@@ -187,7 +190,7 @@ function DiscoverInner() {
 
           {/* Filter panel */}
           {filtersOpen && (
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col gap-5">
+            <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 flex flex-col gap-5">
 
               {/* Year level */}
               <div>
@@ -287,7 +290,7 @@ function DiscoverInner() {
             {networks.length === 0 ? (
               <p className="text-sm text-gray-400">No networks yet.</p>
             ) : (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
                 {networks.map(n => (
                   <div key={n.id} className="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-md hover:border-[#1e3a5f]/30 transition-all cursor-pointer"
                     onClick={() => router.push(`/networks/${n.id}`)}>
@@ -316,7 +319,7 @@ function DiscoverInner() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
               {[1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} className="bg-white rounded-2xl h-40 border border-gray-200 animate-pulse" />
               ))}
@@ -330,7 +333,7 @@ function DiscoverInner() {
               <p className="text-gray-400 text-[13px] mt-1.5">Try removing some filters</p>
             </div>
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
               {users.map(user => (
                 <div key={user.id} className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col gap-3.5">
                   <div className="flex items-start gap-3">

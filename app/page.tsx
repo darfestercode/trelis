@@ -1,9 +1,16 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { verifyJWT } from '@/lib/auth'
 
 const BRAND = '#335293'
 const BRAND_LIGHT = '#4A6BAE'
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('auth_token')?.value
+  if (token && verifyJWT(token)) redirect('/dashboard')
+
   return (
     <main style={{ minHeight: '100vh', background: '#F9FAFB', fontFamily: 'var(--font-inter, -apple-system, sans-serif)' }}>
       {/* Header */}

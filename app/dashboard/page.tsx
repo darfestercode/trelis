@@ -10,6 +10,8 @@ import { Conversation } from '@/types'
 interface Post {
   id: number
   content: string
+  attachment_url: string | null
+  attachment_type: string | null
   created_at: string
   user_id: number
   name: string
@@ -41,7 +43,10 @@ export default function FeedPage() {
   const [postText, setPostText] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [connected, setConnected] = useState<Set<number>>(new Set())
+  const [attachment, setAttachment] = useState<{ url: string; type: string; name: string } | null>(null)
+  const [uploading, setUploading] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -62,22 +67,54 @@ export default function FeedPage() {
     })
   }, [])
 
+  async function handleMediaClick() {
+    fileInputRef.current?.click()
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    const form = new FormData()
+    form.append('file', file)
+    const res = await fetch('/api/upload', { method: 'POST', body: form })
+    if (res.ok) {
+      const d = await res.json()
+      setAttachment({ url: d.url, type: d.type, name: d.name })
+    }
+    setUploading(false)
+    e.target.value = ''
+  }
+
   async function handlePost(e: React.FormEvent) {
     e.preventDefault()
     if (!postText.trim() || submitting) return
     const text = postText.trim()
-    setPostText('')
     setSubmitting(true)
-    const res = await fetch('/api/posts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: text }),
-    })
-    if (res.ok) {
-      const data = await fetch('/api/posts').then(r => r.json())
+    try {
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: text,
+          attachment_url: attachment?.url ?? null,
+          attachment_type: attachment?.type ?? null,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        alert(err.error ?? 'Failed to post. Please try again.')
+        return
+      }
+      setPostText('')
+      setAttachment(null)
+      const data = await fetch(`/api/posts?t=${Date.now()}`).then(r => r.json())
       setPosts(data.posts ?? [])
+    } catch {
+      alert('Network error. Please try again.')
+    } finally {
+      setSubmitting(false)
     }
-    setSubmitting(false)
   }
 
   async function handleConnect(userId: number) {
@@ -99,7 +136,7 @@ export default function FeedPage() {
 
   return (
     <AppShell>
-      <div className="max-w-6xl mx-auto px-6 py-6 flex gap-6">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col lg:flex-row gap-5 lg:gap-6">
         {/* Main feed */}
         <div className="flex-1 min-w-0 space-y-5">
           {/* Post composer */}
@@ -113,25 +150,52 @@ export default function FeedPage() {
                 rows={3}
                 className="w-full text-sm text-gray-700 placeholder-gray-400 resize-none outline-none border-none"
               />
+
+              {/* Attachment preview */}
+              {attachment && (
+                <div className="mt-3 relative inline-block">
+                  {attachment.type === 'image' ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={attachment.url} alt="attachment" className="max-h-48 rounded-lg border border-gray-200 object-cover" />
+                  ) : (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
+                      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                      </svg>
+                      {attachment.name}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setAttachment(null)}
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-gray-700 text-white rounded-full flex items-center justify-center text-xs hover:bg-gray-900"
+                  >×</button>
+                </div>
+              )}
+
+              <input ref={fileInputRef} type="file" accept="image/*,video/*,.pdf,.doc,.docx" className="hidden" onChange={handleFileChange} />
+
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                <div className="flex gap-4">
-                  <button type="button" className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700">
+                <button
+                  type="button"
+                  onClick={handleMediaClick}
+                  disabled={uploading}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50 transition-colors"
+                >
+                  {uploading ? (
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                  ) : (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth={1.8} />
                       <circle cx="8.5" cy="8.5" r="1.5" strokeWidth={1.8} />
                       <polyline points="21 15 16 10 5 21" strokeWidth={1.8} />
                     </svg>
-                    Media
-                  </button>
-                  <button type="button" className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Campus
-                  </button>
-                </div>
+                  )}
+                  {uploading ? 'Uploading…' : 'Media'}
+                </button>
                 <button
                   type="submit"
                   disabled={!postText.trim() || submitting}
@@ -188,7 +252,20 @@ export default function FeedPage() {
                         </button>
                       )}
                     </div>
-                    <p className="text-sm text-gray-700 mt-2 leading-relaxed">{post.content}</p>
+                    <p className="text-sm text-gray-700 mt-2 leading-relaxed break-words">{post.content}</p>
+                    {post.attachment_url && post.attachment_type === 'image' && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={post.attachment_url} alt="" className="mt-3 rounded-lg border border-gray-200 max-h-96 object-cover w-full" />
+                    )}
+                    {post.attachment_url && post.attachment_type !== 'image' && (
+                      <a href={post.attachment_url} target="_blank" rel="noopener noreferrer"
+                        className="mt-3 flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-[#335293] hover:bg-gray-100 transition-colors w-fit">
+                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                        View attachment
+                      </a>
+                    )}
                     {post.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-3">
                         {post.tags.map(t => (
@@ -206,7 +283,7 @@ export default function FeedPage() {
         </div>
 
         {/* Right sidebar */}
-        <div className="w-72 shrink-0 space-y-5">
+        <div className="w-full lg:w-72 lg:shrink-0 space-y-5">
           {/* Updates */}
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">

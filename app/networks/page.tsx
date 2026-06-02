@@ -135,15 +135,15 @@ export default function NetworksPage() {
 
   return (
     <AppShell>
-      <div className="max-w-4xl mx-auto px-6 py-6">
-        <div className="flex items-start justify-between mb-6">
+      <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Your Networks</h1>
             <p className="text-sm text-gray-500 mt-1">Manage the project networks you have built or joined.</p>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 bg-[#1e3a5f] text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-[#162d4a] transition-colors"
+            className="flex items-center gap-2 bg-[#1e3a5f] text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-[#162d4a] transition-colors self-start sm:self-auto shrink-0"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Briefcase, GraduationCap, MapPin, Target, Activity, Eye, Edit3 } from 'lucide-react'
+import { Briefcase, GraduationCap, MapPin, Mail, Target, Activity, Eye, Edit3 } from 'lucide-react'
 import AppShell from '@/app/components/AppShell'
 import { User, Tag } from '@/types'
+import { useUser } from '@/app/components/UserContext'
 
 interface ProfileUser extends User {
   connections_count?: number
+  profile_views?: number
   networks_count?: number
   recent_milestones?: { id: number; title: string; is_completed: boolean; created_at: string }[]
 }
@@ -25,6 +27,7 @@ function timeAgo(ts: string) {
 
 export default function MyProfilePage() {
   const router = useRouter()
+  const { user: authUser, loading: authLoading } = useUser()
   const [currentUser, setCurrentUser] = useState<ProfileUser | null>(null)
   const [allTags, setAllTags] = useState<Tag[]>([])
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([])
@@ -36,24 +39,23 @@ export default function MyProfilePage() {
   const [form, setForm] = useState({ name: '', bio: '', university: '', major: '', year: '', country: '' })
 
   useEffect(() => {
+    if (!authLoading && !authUser) { router.push('/login'); return }
+  }, [authLoading, authUser, router])
+
+  useEffect(() => {
+    if (!authUser) return
     Promise.all([
-      fetch('/api/auth/me').then(r => r.ok ? r.json() : null),
+      fetch(`/api/users/${authUser.id}`).then(r => r.json()),
       fetch('/api/tags').then(r => r.json()),
-    ]).then(([meData, tagsData]) => {
-      if (!meData) { router.push('/login'); return }
-      const user: ProfileUser = meData.user
-
-      fetch(`/api/users/${user.id}`).then(r => r.json()).then(profileData => {
-        if (profileData.user) setCurrentUser(profileData.user)
-      })
-
+    ]).then(([profileData, tagsData]) => {
+      const user: ProfileUser = profileData.user ?? authUser
       setCurrentUser(user)
       setForm({ name: user.name ?? '', bio: user.bio ?? '', university: user.university ?? '', major: user.major ?? '', year: user.year?.toString() ?? '', country: user.country ?? '' })
       setSelectedTagIds((user.tags ?? []).map((t: Tag) => t.id))
       setAllTags(tagsData.tags ?? [])
       setLoading(false)
     })
-  }, [router])
+  }, [authUser])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -110,7 +112,7 @@ export default function MyProfilePage() {
   if (loading || !currentUser) {
     return (
       <AppShell>
-        <div className="mx-auto max-w-[1100px] px-10 py-8">
+        <div className="mx-auto max-w-[1100px] px-3 sm:px-6 lg:px-10 py-4 sm:py-8">
           <div className="bg-white border border-gray-200 rounded-xl h-[300px] animate-pulse" />
         </div>
       </AppShell>
@@ -128,7 +130,7 @@ export default function MyProfilePage() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-[1100px] px-10 py-8 flex flex-col gap-8">
+      <div className="mx-auto w-full max-w-[1100px] px-3 sm:px-6 lg:px-10 py-4 sm:py-8 flex flex-col gap-6 sm:gap-8">
 
         {/* ── Hero Banner ── */}
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden relative shadow-sm">
@@ -141,7 +143,7 @@ export default function MyProfilePage() {
             <Edit3 size={16} /> {editing ? 'Cancel Edit' : 'Edit Profile'}
           </button>
 
-          <div className="px-10 pb-10 relative">
+          <div className="px-5 sm:px-8 lg:px-10 pb-6 sm:pb-10 relative">
             <div className="w-[120px] h-[120px] rounded-full bg-white border-4 border-white flex items-center justify-center text-[2.5rem] font-extrabold text-[#335293] -mt-[60px] mb-4 shadow-md">
               {currentUser.name.charAt(0).toUpperCase()}
             </div>
@@ -168,6 +170,12 @@ export default function MyProfilePage() {
                   {currentUser.country}
                 </span>
               )}
+              {currentUser.email && (
+                <a href={`mailto:${currentUser.email}`} className="flex items-center gap-1.5 text-gray-500 hover:text-gray-700 no-underline">
+                  <Mail size={16} className="text-[#335293]" />
+                  {currentUser.email}
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -181,7 +189,7 @@ export default function MyProfilePage() {
 
         {/* ── Edit Form (inline) ── */}
         {editing && (
-          <div className="bg-white border border-[#335293] rounded-xl p-8 shadow-sm">
+          <div className="bg-white border border-[#335293] rounded-xl p-4 sm:p-8 shadow-sm">
             <h3 className="text-xl font-bold mb-6 text-gray-900">Edit Profile</h3>
             {error && (
               <div className="bg-red-50 border border-red-300 text-red-800 rounded-lg px-4 py-3 mb-6 text-sm">{error}</div>
@@ -206,7 +214,7 @@ export default function MyProfilePage() {
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm outline-none font-[inherit] focus:border-[#335293] bg-white text-gray-900 placeholder-gray-400"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-900 mb-1.5">Major</label>
                   <input name="major" type="text" value={form.major} onChange={handleChange}
@@ -279,19 +287,19 @@ export default function MyProfilePage() {
 
         {/* ── Two-column body (view mode) ── */}
         {!editing && (
-          <div className="flex gap-8 items-start">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
 
             {/* Left column */}
-            <div className="flex-1 flex flex-col gap-8 min-w-0">
+            <div className="flex-1 flex flex-col gap-6 lg:gap-8 min-w-0 w-full">
 
               {/* About Me */}
               {currentUser.bio ? (
-                <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+                <div className="bg-white border border-gray-200 rounded-xl p-5 sm:p-8 shadow-sm">
                   <h3 className="text-xl font-bold mb-4 text-gray-900">About Me</h3>
                   <p className="text-gray-900 text-base leading-relaxed">{currentUser.bio}</p>
                 </div>
               ) : (
-                <div className="bg-white border border-dashed border-gray-200 rounded-xl p-8 text-center">
+                <div className="bg-white border border-dashed border-gray-200 rounded-xl p-5 sm:p-8 text-center">
                   <p className="text-gray-500 text-sm mb-3">No bio yet. Tell the community about yourself.</p>
                   <button onClick={() => setEditing(true)}
                     className="bg-[#335293] text-white border-0 px-5 py-2 rounded-lg text-sm font-semibold cursor-pointer hover:bg-[#2a4278] transition-colors">
@@ -302,7 +310,7 @@ export default function MyProfilePage() {
 
               {/* My Filter Tags */}
               {Object.keys(userTagsByCategory).length > 0 ? (
-                <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+                <div className="bg-white border border-gray-200 rounded-xl p-5 sm:p-8 shadow-sm">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-bold text-gray-900">My Filter Tags</h3>
                     <button onClick={() => setEditing(true)}
@@ -335,7 +343,7 @@ export default function MyProfilePage() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-white border border-dashed border-gray-200 rounded-xl p-8 text-center">
+                <div className="bg-white border border-dashed border-gray-200 rounded-xl p-5 sm:p-8 text-center">
                   <p className="text-gray-500 text-sm mb-3">No tags selected. Tags help people find you.</p>
                   <button onClick={() => setEditing(true)}
                     className="bg-[#335293] text-white border-0 px-5 py-2 rounded-lg text-sm font-semibold cursor-pointer hover:bg-[#2a4278] transition-colors">
@@ -346,7 +354,7 @@ export default function MyProfilePage() {
 
               {/* Recent Activity Planner */}
               {milestones.length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+                <div className="bg-white border border-gray-200 rounded-xl p-5 sm:p-8 shadow-sm">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-bold text-gray-900">Recent Activity Planner</h3>
                     <Link href="/roadmap" className="text-sm text-[#335293] font-medium no-underline hover:underline">View Roadmap →</Link>
@@ -377,7 +385,7 @@ export default function MyProfilePage() {
             </div>
 
             {/* Right rail */}
-            <aside className="w-[300px] shrink-0 flex flex-col gap-8">
+            <aside className="w-full lg:w-[300px] lg:shrink-0 flex flex-col gap-6 lg:gap-8">
 
               <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
                 <h3 className="text-base font-bold mb-5 text-gray-900">Impact Metrics</h3>
@@ -399,7 +407,7 @@ export default function MyProfilePage() {
                   <div className="flex items-center gap-2.5 text-gray-900 font-semibold text-sm">
                     <Eye size={18} className="text-gray-500" /> Profile Views
                   </div>
-                  <span className="font-extrabold text-lg text-gray-900">—</span>
+                  <span className="font-extrabold text-lg text-gray-900">{currentUser.profile_views ?? 0}</span>
                 </div>
               </div>
 

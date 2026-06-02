@@ -1,18 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 interface NavbarProps {
   currentUserId?: number
 }
 
 export default function Navbar({ currentUserId }: NavbarProps) {
-  const router = useRouter()
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
-    router.push('/login')
+    window.location.href = '/login'
   }
 
   return (

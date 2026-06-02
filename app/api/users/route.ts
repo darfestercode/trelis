@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
 import pool from '@/lib/db'
+import { verifyJWT } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
@@ -7,15 +9,27 @@ export async function GET(request: NextRequest) {
   const country = searchParams.get('country') || ''
   const university = searchParams.get('university') || ''
   const year = searchParams.get('year') || ''
-  // comma-separated tag names e.g. ?tags=RMIT,Python
   const tagsParam = searchParams.get('tags') || ''
   const tagNames = tagsParam ? tagsParam.split(',').map(t => t.trim()).filter(Boolean) : []
+
+  // Get current user id to exclude from results
+  const cookieStore = await cookies()
+  const token = cookieStore.get('auth_token')?.value
+  const payload = token ? verifyJWT(token) : null
+  const currentUserId = payload?.userId ?? null
 
   try {
     const params: unknown[] = []
     let p = 1
 
     const conditions: string[] = []
+
+    // Always exclude the logged-in user
+    if (currentUserId) {
+      conditions.push(`u.id != $${p}`)
+      params.push(currentUserId)
+      p++
+    }
 
     if (search) {
       conditions.push(`(u.name ILIKE $${p} OR u.university ILIKE $${p} OR u.major ILIKE $${p})`)
@@ -29,10 +43,20 @@ export async function GET(request: NextRequest) {
       p++
     }
 
-    if (university) {
+    // Support both single ?university= and comma-separated ?universities=
+    const universitiesParam = searchParams.get('universities') || ''
+    const universityList = universitiesParam
+      ? universitiesParam.split(',').map(u => u.trim()).filter(Boolean)
+      : university ? [university] : []
+
+    if (universityList.length === 1) {
       conditions.push(`u.university ILIKE $${p}`)
-      params.push(`%${university}%`)
+      params.push(`%${universityList[0]}%`)
       p++
+    } else if (universityList.length > 1) {
+      const orClauses = universityList.map(() => `u.university ILIKE $${p++}`).join(' OR ')
+      conditions.push(`(${orClauses})`)
+      universityList.forEach(u => params.push(`%${u}%`))
     }
 
     if (year) {

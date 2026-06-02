@@ -42,11 +42,13 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<{ id: number; name: string } | null>(null)
   const [userPermissions, setUserPermissions] = useState(0)
+  const [channelPermissions, setChannelPermissions] = useState(0)
   const [showAddChannel, setShowAddChannel] = useState(false)
   const [newChannelName, setNewChannelName] = useState('')
   const [addingChannel, setAddingChannel] = useState(false)
   const [toggling, setToggling] = useState(false)
   const [channelError, setChannelError] = useState<string | null>(null)
+  const [channelsDrawerOpen, setChannelsDrawerOpen] = useState(false)
 
   // Channel permissions modal
   const [permModal, setPermModal] = useState<Channel | null>(null)
@@ -56,7 +58,7 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
   const [savingPerms, setSavingPerms] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const shouldScrollRef = useRef(true)
 
@@ -64,6 +66,7 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
 
   const canManageChannels = (userPermissions & P.ADMINISTRATOR) !== 0 || (userPermissions & P.MANAGE_CHANNELS) !== 0
   const canManageNetwork = (userPermissions & P.ADMINISTRATOR) !== 0 || (userPermissions & P.MANAGE_NETWORK) !== 0 || (userPermissions & P.MANAGE_ROLES) !== 0
+  const canSendInChannel = (channelPermissions & P.ADMINISTRATOR) !== 0 || (channelPermissions & P.SEND_MESSAGES) !== 0
 
   async function loadNetwork() {
     const res = await fetch(`/api/networks/${id}`)
@@ -89,6 +92,7 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
     if (!res.ok) return
     const data = await res.json()
     setMessages(data.messages ?? [])
+    setChannelPermissions(data.userPermissions ?? 0)
   }, [id])
 
   useEffect(() => {
@@ -104,6 +108,7 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
     if (!activeChannelId) return
     shouldScrollRef.current = true
     setMessages([])
+    setChannelPermissions(0)
     loadMessages(activeChannelId)
     const interval = setInterval(() => {
       if (document.visibilityState !== 'hidden') loadMessages(activeChannelId)
@@ -123,9 +128,9 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
     shouldScrollRef.current = c.scrollHeight - c.scrollTop - c.clientHeight < 120
   }
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault()
-    if (!input.trim() || sending || !activeChannelId) return
+  async function handleSend(e?: React.FormEvent) {
+    e?.preventDefault()
+    if (!input.trim() || sending || !activeChannelId || !canSendInChannel) return
     setSending(true)
     shouldScrollRef.current = true
     const res = await fetch(`/api/networks/${id}/channels/${activeChannelId}/messages`, {
@@ -139,6 +144,13 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
     }
     setSending(false)
     inputRef.current?.focus()
+  }
+
+  function handleInputKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
   }
 
   async function handleAddChannel(e: React.FormEvent) {
@@ -260,8 +272,22 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
     <AppShell raw>
       <div className="flex h-full relative">
 
+        {/* Mobile backdrop for channel drawer */}
+        {channelsDrawerOpen && (
+          <button
+            type="button"
+            aria-label="Close channels"
+            onClick={() => setChannelsDrawerOpen(false)}
+            className="md:hidden fixed inset-0 bg-black/40 z-20"
+          />
+        )}
+
         {/* ── Channel sidebar ── */}
-        <div className="w-60 bg-[#1a2540] flex flex-col shrink-0 overflow-hidden">
+        <div
+          className={`bg-[#1a2540] flex flex-col shrink-0 overflow-hidden
+            fixed md:static inset-y-0 left-0 z-30 w-64 md:w-60 transition-transform duration-200
+            ${channelsDrawerOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}
+        >
           <div className="px-4 py-3.5 border-b border-white/10">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -313,7 +339,7 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
                   }`}
                 >
                   <button
-                    onClick={() => setActiveChannelId(ch.id)}
+                    onClick={() => { setActiveChannelId(ch.id); setChannelsDrawerOpen(false) }}
                     className={`flex-1 text-left flex items-center gap-1.5 px-2 py-1.5 text-sm transition-colors ${
                       activeChannelId === ch.id ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'
                     }`}
@@ -406,12 +432,22 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
         <div className="flex-1 flex flex-col bg-white min-w-0 overflow-hidden">
           {activeChannel ? (
             <>
-              <div className="flex items-center gap-2 px-5 py-3.5 border-b border-gray-200 shrink-0">
+              <div className="flex items-center gap-2 px-4 sm:px-5 py-3 sm:py-3.5 border-b border-gray-200 shrink-0">
+                <button
+                  type="button"
+                  aria-label="Open channels"
+                  onClick={() => setChannelsDrawerOpen(true)}
+                  className="md:hidden p-1 -ml-1 text-gray-600"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
                 <span className="text-gray-400 text-lg font-light">#</span>
-                <span className="font-semibold text-gray-800">{activeChannel.name}</span>
+                <span className="font-semibold text-gray-800 truncate">{activeChannel.name}</span>
               </div>
 
-              <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-5 py-4 min-h-0">
+              <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-3 sm:px-5 py-3 sm:py-4 min-h-0">
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center">
                     <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
@@ -460,18 +496,35 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
               </div>
 
               {network.is_member ? (
-                <div className="px-5 py-3.5 border-t border-gray-100 shrink-0">
+                <div className="px-3 sm:px-5 py-3 sm:py-3.5 border-t border-gray-100 shrink-0">
                   <form onSubmit={handleSend}>
-                    <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-4 py-2.5">
-                      <input
+                    <div
+                      className={`flex items-end gap-2 rounded-xl px-4 py-2.5 ${
+                        canSendInChannel
+                          ? 'bg-gray-100'
+                          : 'bg-gray-100 opacity-60 cursor-not-allowed'
+                      }`}
+                      title={canSendInChannel ? undefined : `You don't have permission to send messages in #${activeChannel.name}`}
+                    >
+                      <textarea
                         ref={inputRef}
                         value={input}
                         onChange={e => setInput(e.target.value)}
-                        placeholder={`Message #${activeChannel.name}`}
-                        className="flex-1 bg-transparent text-sm text-gray-800 outline-none placeholder-gray-400"
+                        onKeyDown={handleInputKeyDown}
+                        rows={1}
+                        disabled={!canSendInChannel}
+                        placeholder={
+                          canSendInChannel
+                            ? `Message #${activeChannel.name}`
+                            : `You don't have permission to send messages in #${activeChannel.name}`
+                        }
+                        className="flex-1 bg-transparent text-sm text-gray-800 outline-none placeholder-gray-400 resize-none max-h-40 leading-5 disabled:cursor-not-allowed"
                       />
-                      <button type="submit" disabled={!input.trim() || sending}
-                        className="text-[#1e3a5f] hover:text-[#162d4a] disabled:text-gray-300 transition-colors">
+                      <button
+                        type="submit"
+                        disabled={!input.trim() || sending || !canSendInChannel}
+                        className="text-[#1e3a5f] hover:text-[#162d4a] disabled:text-gray-300 transition-colors pb-0.5"
+                      >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>

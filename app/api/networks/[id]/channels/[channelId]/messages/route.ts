@@ -39,9 +39,9 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
        ) sub ORDER BY created_at ASC`,
       [chId]
     )
-    return Response.json({ messages: result.rows })
+    return Response.json({ messages: result.rows, userPermissions: perms })
   } catch {
-    return Response.json({ messages: [] })
+    return Response.json({ messages: [], userPermissions: perms })
   }
 }
 

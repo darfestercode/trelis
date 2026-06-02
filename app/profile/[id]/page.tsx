@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
-import { Briefcase, GraduationCap, MapPin, Target, Activity, Eye, Settings } from 'lucide-react'
+import { Briefcase, GraduationCap, MapPin, Mail, Target, Activity, Eye, Settings } from 'lucide-react'
 import AppShell from '@/app/components/AppShell'
 import { User } from '@/types'
 
@@ -79,7 +79,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <AppShell>
-        <div style={{ margin: '0 auto', maxWidth: '1100px', padding: '2rem 2.5rem' }}>
+        <div style={{ margin: '0 auto', maxWidth: '1100px', padding: 'clamp(1rem, 3vw, 2rem) clamp(0.75rem, 4vw, 2.5rem)' }}>
           <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', height: '300px', animation: 'pulse 2s infinite' }} />
         </div>
       </AppShell>
@@ -116,7 +116,7 @@ export default function ProfilePage() {
 
   return (
     <AppShell>
-      <div style={{ margin: '0 auto', width: '100%', maxWidth: '1100px', padding: '2rem 2.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div style={{ margin: '0 auto', width: '100%', maxWidth: '1100px', padding: 'clamp(1rem, 3vw, 2rem) clamp(0.75rem, 4vw, 2.5rem)', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
         {/* ── Hero Banner ── */}
         <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', overflow: 'hidden', position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
@@ -125,7 +125,7 @@ export default function ProfilePage() {
           {isOwnProfile && (
             <Link
               href="/my-profile"
-              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(5px)', border: 'none', padding: '0.5rem 1rem', borderRadius: '100px', color: 'white', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer', textDecoration: 'none' }}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(5px)', border: 'none', padding: '0.45rem 0.9rem', borderRadius: '100px', color: 'white', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'none' }}
             >
               <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -134,12 +134,12 @@ export default function ProfilePage() {
             </Link>
           )}
 
-          <div style={{ padding: '0 2.5rem 2.5rem 2.5rem', position: 'relative' }}>
+          <div style={{ padding: '0 clamp(1.25rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.5rem)', position: 'relative' }}>
             <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: BG_CARD, border: `4px solid ${BG_CARD}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 800, color: BRAND, marginTop: '-60px', marginBottom: '1rem', boxShadow: '0 4px 15px rgba(0,0,0,0.08)' }}>
               {profile.name.charAt(0).toUpperCase()}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <h1 style={{ fontSize: '2rem', fontWeight: 800, color: TEXT_MAIN, marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>
                   {profile.name}
@@ -159,6 +159,11 @@ export default function ProfilePage() {
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                       <MapPin size={16} color={BRAND} /> {profile.country}
                     </span>
+                  )}
+                  {profile.email && (
+                    <a href={`mailto:${profile.email}`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: TEXT_MUTED, textDecoration: 'none' }}>
+                      <Mail size={16} color={BRAND} /> {profile.email}
+                    </a>
                   )}
                 </div>
               </div>
@@ -189,10 +194,10 @@ export default function ProfilePage() {
         </div>
 
         {/* ── Two-column body ── */}
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'flex-start' }}>
 
           {/* Left column */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2rem', minWidth: 0 }}>
+          <div style={{ flex: '1 1 min(100%, 360px)', display: 'flex', flexDirection: 'column', gap: '2rem', minWidth: 0 }}>
 
             {/* About Me */}
             {profile.bio && (
@@ -268,7 +273,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Right rail */}
-          <aside style={{ width: '300px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <aside style={{ flex: '1 1 300px', maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
             {/* Impact Metrics */}
             <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
