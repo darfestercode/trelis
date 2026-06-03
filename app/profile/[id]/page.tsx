@@ -46,7 +46,7 @@ export default function ProfilePage() {
     Promise.all([
       fetch(`/api/users/${profileId}`).then(r => r.ok ? r.json() : null),
       fetch('/api/auth/me').then(r => r.ok ? r.json() : null),
-      fetch('/api/connections').then(r => r.json()),
+      fetch('/api/connections').then(r => r.ok ? r.json() : { connections: [] }),
     ]).then(([profileData, meData, connData]) => {
       if (!profileData) { setNotFound(true) }
       else { setProfile(profileData.user) }
@@ -55,6 +55,9 @@ export default function ProfilePage() {
         const ids = new Set((connData.connections as { other_user_id: number }[]).map(c => c.other_user_id))
         setConnected(ids.has(parseInt(profileId)))
       }
+      setLoading(false)
+    }).catch(() => {
+      setNotFound(true)
       setLoading(false)
     })
   }, [profileId])

@@ -27,7 +27,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const r = await fetch('/api/auth/me')
-      if (r.status === 401) {
+      if (r.status === 401 || r.status === 404) {
         setUser(null)
         setLoggedOut(true)
       } else if (r.ok) {
@@ -35,7 +35,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUser(d?.user ?? null)
         setLoggedOut(false)
       }
-      // 5xx or other non-401 errors: keep previous auth state, don't bounce to login
+      // 5xx or other errors: keep previous auth state, don't bounce to login
     } catch {
       // network error: keep previous auth state
     } finally {
