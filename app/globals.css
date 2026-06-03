@@ -9,9 +9,17 @@
   --bg-main: #F9FAFB;
   --bg-card: #FFFFFF;
   --bg-hover: #F3F4F6;
+  --bg-accent: #EEF2FF;
   --text-main: #111827;
   --text-muted: #6B7280;
   --border-light: #E5E7EB;
+  /* semantic */
+  --bg-error: #FFF2F2;
+  --border-error: #FECACA;
+  --text-error: #991B1B;
+  --bg-success: #F0FDF4;
+  --border-success: #BBF7D0;
+  --text-success: #166534;
 
   /* legacy compat */
   --primary: #335293;
@@ -26,11 +34,19 @@ html.dark {
   --bg-main: #0f172a;
   --bg-card: #1e293b;
   --bg-hover: #1e293b;
+  --bg-accent: rgba(51,82,147,0.2);
   --text-main: #f1f5f9;
   --text-muted: #94a3b8;
   --border-light: #334155;
   --background: #0f172a;
   --foreground: #f1f5f9;
+  /* semantic */
+  --bg-error: #2d0f0f;
+  --border-error: #7f1d1d;
+  --text-error: #fca5a5;
+  --bg-success: #052e16;
+  --border-success: #065f46;
+  --text-success: #6ee7b7;
 }
 
 html.dark .auth-input,
@@ -80,11 +96,19 @@ html.dark select:not(.auth-select) {
   color: #f1f5f9;
 }
 
-/* Inline border utilities used on tags / badges */
-html.dark .border-red-200    { border-color: #7f1d1d !important; }
+/* Semantic colour overrides */
 html.dark .bg-red-50         { background-color: #2d0f0f !important; }
+html.dark .border-red-200    { border-color: #7f1d1d !important; }
+html.dark .border-red-300    { border-color: #991b1b !important; }
+html.dark .text-red-800      { color: #fca5a5 !important; }
 html.dark .text-red-600      { color: #fca5a5 !important; }
 html.dark .text-red-500      { color: #f87171 !important; }
+html.dark .bg-green-50       { background-color: #052e16 !important; }
+html.dark .border-green-200  { border-color: #065f46 !important; }
+html.dark .text-green-800    { color: #6ee7b7 !important; }
+html.dark .text-green-700    { color: #6ee7b7 !important; }
+/* Dashed/dotted borders in roadmap / empty states */
+html.dark .border-dashed     { border-color: #334155; }
 
 * { box-sizing: border-box; }
 

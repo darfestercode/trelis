@@ -605,8 +605,8 @@ export default function NetworkDetailPage({ params }: { params: Promise<{ id: st
                                 onClick={() => cyclePermState(role.id, flag)}
                                 className="w-7 h-7 rounded-lg mx-auto flex items-center justify-center text-sm font-bold transition-colors"
                                 style={{
-                                  backgroundColor: state === 1 ? '#dcfce7' : state === 2 ? '#fee2e2' : '#f3f4f6',
-                                  color: state === 1 ? '#16a34a' : state === 2 ? '#dc2626' : '#9ca3af',
+                                  backgroundColor: state === 1 ? 'rgba(22,163,74,0.15)' : state === 2 ? 'rgba(220,38,38,0.15)' : 'var(--bg-hover)',
+                                  color: state === 1 ? '#22c55e' : state === 2 ? '#f87171' : 'var(--text-muted)',
                                 }}
                               >
                                 {state === 1 ? '✓' : state === 2 ? '✕' : '—'}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
-import { Briefcase, GraduationCap, MapPin, Mail, Target, Activity, Eye, Settings } from 'lucide-react'
+import { Mail, Target, Activity, Eye, Settings } from 'lucide-react'
 import AppShell from '@/app/components/AppShell'
 import { User } from '@/types'
 
@@ -25,11 +25,11 @@ function timeAgo(ts: string) {
 
 const BRAND = '#335293'
 const BRAND_LIGHT = '#4A6BAE'
-const TEXT_MAIN = '#111827'
-const TEXT_MUTED = '#6B7280'
-const BORDER = '#E5E7EB'
-const BG_CARD = '#FFFFFF'
-const BG_HOVER = '#F9FAFB'
+const TEXT_MAIN = 'var(--text-main)'
+const TEXT_MUTED = 'var(--text-muted)'
+const BORDER = 'var(--border-light)'
+const BG_CARD = 'var(--bg-card)'
+const BG_HOVER = 'var(--bg-hover)'
 
 export default function ProfilePage() {
   const params = useParams()
@@ -68,12 +68,6 @@ export default function ProfilePage() {
     setConnected(true)
   }
 
-  const yearLabel = (y: number | null) => {
-    if (!y) return null
-    const map: Record<number, string> = { 1: 'Undergrad', 2: 'Undergrad', 3: 'Undergrad', 4: 'Undergrad', 5: 'Postgraduate', 6: 'PhD' }
-    return map[y] ?? `Year ${y}`
-  }
-
   const isOwnProfile = currentUser?.id === parseInt(profileId)
 
   if (loading) {
@@ -99,19 +93,7 @@ export default function ProfilePage() {
     )
   }
 
-  const tagsByCategory = (profile.tags ?? []).reduce<Record<string, NonNullable<User['tags']>>>((acc, tag) => {
-    if (!acc[tag.category]) acc[tag.category] = []
-    acc[tag.category].push(tag)
-    return acc
-  }, {})
-
-  const categoryLabels: Record<string, string> = {
-    skill: 'Skill Focus', skills: 'Skill Focus',
-    level: 'Level of Study',
-    goal: 'Future Goal', goals: 'Future Goal',
-    field: 'Field', role: 'Role', experience: 'Experience',
-  }
-
+  const profileTags = profile.tags ?? []
   const milestones = profile.recent_milestones ?? []
 
   return (
@@ -144,28 +126,11 @@ export default function ProfilePage() {
                 <h1 style={{ fontSize: '2rem', fontWeight: 800, color: TEXT_MAIN, marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>
                   {profile.name}
                 </h1>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', color: TEXT_MUTED, fontSize: '0.9rem', fontWeight: 500, marginTop: '0.5rem' }}>
-                  {yearLabel(profile.year) && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <Briefcase size={16} color={BRAND} /> {yearLabel(profile.year)}{profile.major ? ` · ${profile.major}` : ''}
-                    </span>
-                  )}
-                  {profile.university && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <GraduationCap size={16} color={BRAND} /> {profile.university}
-                    </span>
-                  )}
-                  {profile.country && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <MapPin size={16} color={BRAND} /> {profile.country}
-                    </span>
-                  )}
-                  {profile.email && (
-                    <a href={`mailto:${profile.email}`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: TEXT_MUTED, textDecoration: 'none' }}>
-                      <Mail size={16} color={BRAND} /> {profile.email}
-                    </a>
-                  )}
-                </div>
+                {profile.email && (
+                  <a href={`mailto:${profile.email}`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: TEXT_MUTED, textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500, marginTop: '0.5rem' }}>
+                    <Mail size={16} color={BRAND} /> {profile.email}
+                  </a>
+                )}
               </div>
 
               {!isOwnProfile && currentUser && (
@@ -207,11 +172,11 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* My Filter Tags */}
-            {Object.keys(tagsByCategory).length > 0 && (
+            {/* My Tags */}
+            {profileTags.length > 0 && (
               <div style={{ background: BG_CARD, border: `1px solid ${BORDER}`, borderRadius: '12px', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: TEXT_MAIN }}>My Filter Tags</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: TEXT_MAIN }}>Tags</h3>
                   {isOwnProfile && (
                     <Link
                       href="/my-profile"
@@ -221,25 +186,11 @@ export default function ProfilePage() {
                     </Link>
                   )}
                 </div>
-
-                <p style={{ color: TEXT_MUTED, fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-                  Your active tags dictate how recruiters, study groups, and peers discover you in the network search algorithm.
-                </p>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  {Object.entries(tagsByCategory).map(([category, tags]) => (
-                    <div key={category}>
-                      <h4 style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: TEXT_MUTED, letterSpacing: '0.05em', marginBottom: '0.8rem' }}>
-                        {categoryLabels[category] ?? category}
-                      </h4>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                        {tags.map(t => (
-                          <span key={t.id} style={{ background: 'rgba(51, 82, 147, 0.08)', color: BRAND, border: '1px solid rgba(51, 82, 147, 0.2)', padding: '0.4rem 1rem', borderRadius: '100px', fontSize: '0.85rem', fontWeight: 600 }}>
-                            {t.name}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {profileTags.map(t => (
+                    <span key={t.id} style={{ background: 'rgba(51, 82, 147, 0.08)', color: BRAND, border: '1px solid rgba(51, 82, 147, 0.2)', padding: '0.4rem 1rem', borderRadius: '100px', fontSize: '0.85rem', fontWeight: 600 }}>
+                      #{t.name}
+                    </span>
                   ))}
                 </div>
               </div>

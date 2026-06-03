@@ -7,13 +7,13 @@ const BRAND = '#335293'
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  border: '1px solid #D1D5DB',
+  border: '1px solid var(--border-light)',
   borderRadius: '10px',
   padding: '10px 12px',
   fontSize: '14px',
   outline: 'none',
-  background: '#fff',
-  color: '#111827',
+  background: 'var(--bg-card)',
+  color: 'var(--text-main)',
   boxSizing: 'border-box',
   transition: 'border-color 0.15s',
   fontFamily: 'inherit',
@@ -194,7 +194,7 @@ export default function SignupForm() {
     <main
       style={{
         minHeight: '100vh',
-        background: '#F9FAFB',
+        background: 'var(--bg-main)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -226,29 +226,29 @@ export default function SignupForm() {
               Trelis
             </span>
           </Link>
-          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '15px' }}>
+          <p style={{ color: 'var(--text-muted)', marginTop: '8px', fontSize: '15px' }}>
             {step === 'form' ? 'Create your account and start connecting' : 'Verify your email address'}
           </p>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '32px' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-light)', padding: '32px' }}>
 
           {/* ── STEP 1: Form ── */}
           {step === 'form' && (
             <>
-              <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', marginBottom: '24px' }}>
+              <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '24px' }}>
                 Create Account
               </h1>
 
               {error && (
-                <div style={{ background: '#FFF2F2', border: '1px solid #FECACA', color: '#991B1B', borderRadius: '10px', padding: '12px 14px', marginBottom: '20px', fontSize: '14px' }}>
+                <div style={{ background: 'var(--bg-error)', border: '1px solid var(--border-error)', color: 'var(--text-error)', borderRadius: '10px', padding: '12px 14px', marginBottom: '20px', fontSize: '14px' }}>
                   {error}
                 </div>
               )}
 
               <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-main)', marginBottom: '6px' }}>
                     Email <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
@@ -264,7 +264,7 @@ export default function SignupForm() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-main)', marginBottom: '6px' }}>
                     Password <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
@@ -279,7 +279,7 @@ export default function SignupForm() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-main)', marginBottom: '6px' }}>
                     Full Name <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
@@ -294,7 +294,7 @@ export default function SignupForm() {
                 </div>
 
                 <div style={{ paddingTop: '6px' }}>
-                  <p style={{ fontSize: '11px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600, marginBottom: '12px' }}>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600, marginBottom: '12px' }}>
                     Optional — fill in now or later
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -319,7 +319,7 @@ export default function SignupForm() {
                         name="year"
                         value={form.year}
                         onChange={handleChange}
-                        style={{ ...inputStyle, color: form.year ? '#111827' : '#9CA3AF' }}
+                        style={{ ...inputStyle, color: 'var(--text-main)' }}
                       >
                         <option value="">Year</option>
                         <option value="1">1st Year</option>
@@ -362,7 +362,7 @@ export default function SignupForm() {
                 </button>
               </form>
 
-              <p style={{ textAlign: 'center', fontSize: '14px', color: '#6B7280', marginTop: '24px' }}>
+              <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)', marginTop: '24px' }}>
                 Already have an account?{' '}
                 <Link href="/login" style={{ color: BRAND, fontWeight: 600 }}>
                   Log in
@@ -376,23 +376,23 @@ export default function SignupForm() {
             <>
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 {/* Email icon */}
-                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'var(--bg-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#335293" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect width="20" height="16" x="2" y="4" rx="2"/>
                     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
                   </svg>
                 </div>
-                <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>
+                <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
                   Check your inbox
                 </h1>
-                <p style={{ fontSize: '14px', color: '#6B7280', lineHeight: 1.6 }}>
+                <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
                   We sent a 6-digit code to<br />
-                  <strong style={{ color: '#374151' }}>{form.email}</strong>
+                  <strong style={{ color: 'var(--text-main)' }}>{form.email}</strong>
                 </p>
               </div>
 
               {error && (
-                <div style={{ background: '#FFF2F2', border: '1px solid #FECACA', color: '#991B1B', borderRadius: '10px', padding: '12px 14px', marginBottom: '20px', fontSize: '14px' }}>
+                <div style={{ background: 'var(--bg-error)', border: '1px solid var(--border-error)', color: 'var(--text-error)', borderRadius: '10px', padding: '12px 14px', marginBottom: '20px', fontSize: '14px' }}>
                   {error}
                 </div>
               )}
@@ -419,11 +419,11 @@ export default function SignupForm() {
                         textAlign: 'center',
                         fontSize: '22px',
                         fontWeight: 700,
-                        border: `2px solid ${digit ? BRAND : '#D1D5DB'}`,
+                        border: `2px solid ${digit ? BRAND : 'var(--border-light)'}`,
                         borderRadius: '10px',
                         outline: 'none',
-                        color: '#111827',
-                        background: digit ? '#EEF2FF' : '#fff',
+                        color: 'var(--text-main)',
+                        background: digit ? 'var(--bg-accent)' : 'var(--bg-card)',
                         transition: 'border-color 0.15s, background 0.15s',
                         fontFamily: 'monospace',
                         caretColor: BRAND,
@@ -453,7 +453,7 @@ export default function SignupForm() {
               </form>
 
               <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                <p style={{ fontSize: '14px', color: '#6B7280' }}>
+                <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
                   Didn&apos;t receive it?{' '}
                   <button
                     onClick={handleResend}
@@ -462,7 +462,7 @@ export default function SignupForm() {
                       background: 'none',
                       border: 'none',
                       cursor: countdown > 0 || loading ? 'default' : 'pointer',
-                      color: countdown > 0 || loading ? '#9CA3AF' : BRAND,
+                      color: countdown > 0 || loading ? 'var(--text-muted)' : BRAND,
                       fontWeight: 600,
                       fontSize: '14px',
                       padding: 0,
@@ -477,7 +477,7 @@ export default function SignupForm() {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    color: '#6B7280',
+                    color: 'var(--text-muted)',
                     fontSize: '13px',
                     marginTop: '8px',
                     padding: 0,

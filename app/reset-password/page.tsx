@@ -54,19 +54,19 @@ function ResetPasswordForm() {
 
   return (
     <>
-      <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>
+      <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
         Set new password
       </h1>
-      <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '24px' }}>
+      <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>
         Enter your new password below.
       </p>
 
       {error && (
         <div
           style={{
-            background: '#FFF2F2',
-            border: '1px solid #FECACA',
-            color: '#991B1B',
+            background: 'var(--bg-error)',
+            border: '1px solid var(--border-error)',
+            color: 'var(--text-error)',
             borderRadius: '10px',
             padding: '12px 14px',
             marginBottom: '20px',
@@ -79,7 +79,7 @@ function ResetPasswordForm() {
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-main)', marginBottom: '6px' }}>
             New Password
           </label>
           <input
@@ -94,7 +94,7 @@ function ResetPasswordForm() {
           />
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-main)', marginBottom: '6px' }}>
             Confirm Password
           </label>
           <input
@@ -135,7 +135,7 @@ export default function ResetPasswordPage() {
     <main
       style={{
         minHeight: '100vh',
-        background: '#F9FAFB',
+        background: 'var(--bg-main)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -168,7 +168,7 @@ export default function ResetPasswordPage() {
           </Link>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '32px' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-light)', padding: '32px' }}>
           <Suspense fallback={<div style={{ height: '200px' }} />}>
             <ResetPasswordForm />
           </Suspense>

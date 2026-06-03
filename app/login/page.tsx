@@ -16,7 +16,7 @@ export default async function LoginPage() {
     <main
       style={{
         minHeight: '100vh',
-        background: '#F9FAFB',
+        background: 'var(--bg-main)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -47,7 +47,7 @@ export default async function LoginPage() {
               Trelis
             </span>
           </Link>
-          <p style={{ color: '#6B7280', marginTop: '8px', fontSize: '15px' }}>
+          <p style={{ color: 'var(--text-muted)', marginTop: '8px', fontSize: '15px' }}>
             Welcome back — log in to your account
           </p>
         </div>
@@ -57,9 +57,9 @@ export default async function LoginPage() {
             <div
               style={{
                 height: '260px',
-                background: '#fff',
+                background: 'var(--bg-card)',
                 borderRadius: '16px',
-                border: '1px solid #E5E7EB',
+                border: '1px solid var(--border-light)',
               }}
             />
           }

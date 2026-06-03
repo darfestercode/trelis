@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
     <main
       style={{
         minHeight: '100vh',
-        background: '#F9FAFB',
+        background: 'var(--bg-main)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -68,22 +68,22 @@ export default function ForgotPasswordPage() {
           </Link>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '32px' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-light)', padding: '32px' }}>
           {!submitted ? (
             <>
-              <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>
+              <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
                 Forgot password?
               </h1>
-              <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '24px' }}>
+              <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>
                 Enter your email and we&apos;ll send you a reset link.
               </p>
 
               {error && (
                 <div
                   style={{
-                    background: '#FFF2F2',
-                    border: '1px solid #FECACA',
-                    color: '#991B1B',
+                    background: 'var(--bg-error)',
+                    border: '1px solid var(--border-error)',
+                    color: 'var(--text-error)',
                     borderRadius: '10px',
                     padding: '12px 14px',
                     marginBottom: '20px',
@@ -97,7 +97,7 @@ export default function ForgotPasswordPage() {
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
                   <label
-                    style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}
+                    style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-main)', marginBottom: '6px' }}
                   >
                     Email
                   </label>
@@ -131,7 +131,7 @@ export default function ForgotPasswordPage() {
                 </button>
               </form>
 
-              <p style={{ textAlign: 'center', fontSize: '14px', color: '#6B7280', marginTop: '24px' }}>
+              <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)', marginTop: '24px' }}>
                 <Link href="/login" style={{ color: BRAND, fontWeight: 600 }}>
                   Back to login
                 </Link>
@@ -160,10 +160,10 @@ export default function ForgotPasswordPage() {
                   />
                 </svg>
               </div>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
                 Check your email
               </h2>
-              <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '24px' }}>
+              <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>
                 If an account with that email exists, a password reset link has been sent.
               </p>
 

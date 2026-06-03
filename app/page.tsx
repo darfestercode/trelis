@@ -12,9 +12,9 @@ export default async function LandingPage() {
   if (token && verifyJWT(token)) redirect('/dashboard')
 
   return (
-    <main style={{ minHeight: '100vh', background: '#F9FAFB', fontFamily: 'var(--font-inter, -apple-system, sans-serif)' }}>
+    <main style={{ minHeight: '100vh', background: 'var(--bg-main)', fontFamily: 'var(--font-inter, -apple-system, sans-serif)' }}>
       {/* Header */}
-      <header style={{ borderBottom: '1px solid #E5E7EB', background: '#fff' }}>
+      <header style={{ borderBottom: '1px solid var(--border-light)', background: 'var(--bg-card)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `linear-gradient(135deg, ${BRAND} 0%, ${BRAND_LIGHT} 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -23,7 +23,7 @@ export default async function LandingPage() {
             <span style={{ fontSize: '22px', fontWeight: 700, color: BRAND, letterSpacing: '-0.3px' }}>Trelis</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <Link href="/login" style={{ color: '#6B7280', fontWeight: 500, fontSize: '15px', textDecoration: 'none' }}>
+            <Link href="/login" style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '15px', textDecoration: 'none' }}>
               Log in
             </Link>
             <Link href="/signup" style={{ background: BRAND, color: '#fff', padding: '8px 20px', borderRadius: '10px', fontWeight: 600, fontSize: '15px', textDecoration: 'none' }}>
@@ -39,14 +39,14 @@ export default async function LandingPage() {
           <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: BRAND, display: 'inline-block' }} />
           Global Student Network
         </div>
-        <h1 style={{ fontSize: 'clamp(40px, 6vw, 68px)', fontWeight: 800, color: '#111827', lineHeight: 1.1, letterSpacing: '-1px', marginBottom: '20px' }}>
+        <h1 style={{ fontSize: 'clamp(40px, 6vw, 68px)', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1, letterSpacing: '-1px', marginBottom: '20px' }}>
           Connect with{' '}
           <span style={{ background: `linear-gradient(135deg, ${BRAND} 0%, ${BRAND_LIGHT} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Global Mentors
           </span>
           <br />& Peers
         </h1>
-        <p style={{ fontSize: '18px', color: '#6B7280', maxWidth: '560px', margin: '0 auto 40px', lineHeight: 1.7 }}>
+        <p style={{ fontSize: '18px', color: 'var(--text-muted)', maxWidth: '560px', margin: '0 auto 40px', lineHeight: 1.7 }}>
           Find guidance from students and professionals worldwide. Trelis is the global student
           networking platform for extracurricular opportunities, research collaborations, and mentorship.
         </p>
@@ -54,7 +54,7 @@ export default async function LandingPage() {
           <Link href="/signup" style={{ background: BRAND, color: '#fff', padding: '14px 32px', borderRadius: '12px', fontSize: '16px', fontWeight: 700, textDecoration: 'none', boxShadow: `0 4px 20px rgba(51,82,147,0.3)` }}>
             Get Started — It&apos;s Free
           </Link>
-          <Link href="/login" style={{ background: '#fff', color: '#374151', padding: '14px 32px', borderRadius: '12px', fontSize: '16px', fontWeight: 600, textDecoration: 'none', border: '1px solid #E5E7EB' }}>
+          <Link href="/login" style={{ background: 'var(--bg-card)', color: 'var(--text-main)', padding: '14px 32px', borderRadius: '12px', fontSize: '16px', fontWeight: 600, textDecoration: 'none', border: '1px solid var(--border-light)' }}>
             Log In
           </Link>
         </div>
@@ -86,12 +86,12 @@ export default async function LandingPage() {
               desc: 'Discover research collaborations, internships, and extracurricular activities that match your goals.',
             },
           ].map((feature) => (
-            <div key={feature.title} style={{ background: '#fff', borderRadius: '16px', padding: '32px', border: '1px solid #E5E7EB' }}>
+            <div key={feature.title} style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '32px', border: '1px solid var(--border-light)' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `rgba(51,82,147,0.08)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: BRAND, marginBottom: '20px' }}>
                 {feature.icon}
               </div>
-              <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>{feature.title}</h3>
-              <p style={{ fontSize: '14px', color: '#6B7280', lineHeight: 1.65 }}>{feature.desc}</p>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>{feature.title}</h3>
+              <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.65 }}>{feature.desc}</p>
             </div>
           ))}
         </div>

@@ -40,30 +40,30 @@ export default function LoginForm() {
   }
 
   return (
-    <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '32px' }}>
-      <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', marginBottom: '24px' }}>Welcome back</h1>
+    <div style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-light)', padding: '32px' }}>
+      <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '24px' }}>Welcome back</h1>
 
       {registered && (
-        <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534', borderRadius: '10px', padding: '12px 14px', marginBottom: '20px', fontSize: '14px' }}>
+        <div style={{ background: 'var(--bg-success)', border: '1px solid var(--border-success)', color: 'var(--text-success)', borderRadius: '10px', padding: '12px 14px', marginBottom: '20px', fontSize: '14px' }}>
           Account created! Please log in.
         </div>
       )}
 
       {reset && (
-        <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#166534', borderRadius: '10px', padding: '12px 14px', marginBottom: '20px', fontSize: '14px' }}>
+        <div style={{ background: 'var(--bg-success)', border: '1px solid var(--border-success)', color: 'var(--text-success)', borderRadius: '10px', padding: '12px 14px', marginBottom: '20px', fontSize: '14px' }}>
           Password reset successfully. Please log in with your new password.
         </div>
       )}
 
       {error && (
-        <div style={{ background: '#FFF2F2', border: '1px solid #FECACA', color: '#991B1B', borderRadius: '10px', padding: '12px 14px', marginBottom: '20px', fontSize: '14px' }}>
+        <div style={{ background: 'var(--bg-error)', border: '1px solid var(--border-error)', color: 'var(--text-error)', borderRadius: '10px', padding: '12px 14px', marginBottom: '20px', fontSize: '14px' }}>
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
-          <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-main)', marginBottom: '6px' }}>
             Email
           </label>
           <input
@@ -80,7 +80,7 @@ export default function LoginForm() {
 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <label style={{ fontSize: '14px', fontWeight: 500, color: '#374151' }}>Password</label>
+            <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-main)' }}>Password</label>
             <Link
               href="/forgot-password"
               style={{ fontSize: '13px', color: BRAND, fontWeight: 500 }}
@@ -120,7 +120,7 @@ export default function LoginForm() {
         </button>
       </form>
 
-      <p style={{ textAlign: 'center', fontSize: '14px', color: '#6B7280', marginTop: '24px' }}>
+      <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--text-muted)', marginTop: '24px' }}>
         Don&apos;t have an account?{' '}
         <Link href="/signup" style={{ color: BRAND, fontWeight: 600 }}>
           Sign up

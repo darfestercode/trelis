@@ -21,25 +21,8 @@ interface Network {
 interface Tag {
   id: number
   name: string
-  category: string
 }
 
-const FILTER_CATEGORIES: { key: string; label: string }[] = [
-  { key: 'country', label: 'Country' },
-  { key: 'institution', label: 'Institution' },
-  { key: 'skill', label: 'Skills' },
-  { key: 'interest', label: 'Interests' },
-  { key: 'goal', label: 'Goals' },
-]
-
-const YEAR_OPTIONS = [
-  { value: '1', label: 'Year 1' },
-  { value: '2', label: 'Year 2' },
-  { value: '3', label: 'Year 3' },
-  { value: '4', label: 'Year 4' },
-  { value: '5', label: 'Postgraduate' },
-  { value: '6', label: 'PhD' },
-]
 
 function DiscoverInner() {
   const router = useRouter()
@@ -55,7 +38,6 @@ function DiscoverInner() {
 
   const [search, setSearch] = useState(searchParams.get('q') || '')
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set())
-  const [activeYear, setActiveYear] = useState<string>('')
 
   useEffect(() => {
     if (loggedOut) router.push('/login')
@@ -75,12 +57,11 @@ function DiscoverInner() {
     setLoading(true)
     const params = new URLSearchParams()
     if (search.trim()) params.set('q', search.trim())
-    if (activeYear) params.set('year', activeYear)
     if (activeTags.size > 0) params.set('tags', [...activeTags].join(','))
     const data = await fetch(`/api/users?${params}`).then(r => r.json())
     setUsers(data.users ?? [])
     setLoading(false)
-  }, [search, activeTags, activeYear])
+  }, [search, activeTags])
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
@@ -101,7 +82,6 @@ function DiscoverInner() {
   function clearAll() {
     setSearch('')
     setActiveTags(new Set())
-    setActiveYear('')
   }
 
   async function handleConnect(userId: number) {
@@ -113,20 +93,8 @@ function DiscoverInner() {
     setConnected(prev => new Set([...prev, userId]))
   }
 
-  const yearLabel = (y: number | null) => {
-    if (!y) return 'Student'
-    if (y <= 4) return `Year ${y} · Undergrad`
-    if (y === 5) return 'Postgraduate'
-    return 'PhD'
-  }
-
-  const tagsByCategory = FILTER_CATEGORIES.reduce((acc, cat) => {
-    acc[cat.key] = allTags.filter(t => t.category === cat.key)
-    return acc
-  }, {} as Record<string, Tag[]>)
-
-  const hasFilters = activeTags.size > 0 || activeYear || search.trim()
-  const activeFilterCount = activeTags.size + (activeYear ? 1 : 0)
+  const hasFilters = activeTags.size > 0 || search.trim()
+  const activeFilterCount = activeTags.size
 
   return (
     <AppShell>
@@ -192,54 +160,30 @@ function DiscoverInner() {
           {filtersOpen && (
             <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 flex flex-col gap-5">
 
-              {/* Year level */}
-              <div>
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2.5">Level</p>
-                <div className="flex flex-wrap gap-2">
-                  {YEAR_OPTIONS.map(opt => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setActiveYear(v => v === opt.value ? '' : opt.value)}
-                      className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium border transition-all ${
-                        activeYear === opt.value
-                          ? 'border-[#335293] bg-[#335293]/8 text-[#335293]'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tag categories */}
-              {FILTER_CATEGORIES.map(cat => {
-                const tags = tagsByCategory[cat.key] || []
-                if (tags.length === 0) return null
-                return (
-                  <div key={cat.key}>
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2.5">{cat.label}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map(tag => {
-                        const active = activeTags.has(tag.name)
-                        return (
-                          <button
-                            key={tag.id}
-                            onClick={() => toggleTag(tag.name)}
-                            className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium border transition-all ${
-                              active
-                                ? 'border-[#335293] bg-[#335293]/8 text-[#335293]'
-                                : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                            }`}
-                          >
-                            {tag.name}
-                          </button>
-                        )
-                      })}
-                    </div>
+              {/* Tags */}
+              {allTags.length > 0 && (
+                <div>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2.5">Tags</p>
+                  <div className="flex flex-wrap gap-2">
+                    {allTags.map(tag => {
+                      const active = activeTags.has(tag.name)
+                      return (
+                        <button
+                          key={tag.id}
+                          onClick={() => toggleTag(tag.name)}
+                          className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium border transition-all ${
+                            active
+                              ? 'border-[#335293] bg-[#335293]/8 text-[#335293]'
+                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                          }`}
+                        >
+                          #{tag.name}
+                        </button>
+                      )
+                    })}
                   </div>
-                )
-              })}
+                </div>
+              )}
             </div>
           )}
 
@@ -256,19 +200,9 @@ function DiscoverInner() {
                   </button>
                 </span>
               )}
-              {activeYear && (
-                <span className="inline-flex items-center gap-1.5 bg-[#335293]/8 text-[#335293] text-[13px] font-semibold px-3 py-1 rounded-full border border-[#335293]/20">
-                  {YEAR_OPTIONS.find(o => o.value === activeYear)?.label}
-                  <button onClick={() => setActiveYear('')} className="leading-none">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              )}
-              {[...activeTags].map(name => (
+{[...activeTags].map(name => (
                 <span key={name} className="inline-flex items-center gap-1.5 bg-[#335293]/8 text-[#335293] text-[13px] font-semibold px-3 py-1 rounded-full border border-[#335293]/20">
-                  {name}
+                  #{name}
                   <button onClick={() => toggleTag(name)} className="leading-none">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -342,9 +276,6 @@ function DiscoverInner() {
                     </div>
                     <div className="min-w-0">
                       <p className="font-semibold text-gray-900 text-sm truncate">{user.name}</p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {yearLabel(user.year)}{user.major ? ` · ${user.major}` : ''}{user.university ? ` @ ${user.university}` : ''}
-                      </p>
                     </div>
                   </div>
 
@@ -361,7 +292,7 @@ function DiscoverInner() {
                                 : 'border-gray-200 text-gray-500 bg-white'
                             }`}
                           >
-                            {t.name}
+                            #{t.name}
                           </span>
                         )
                       })}

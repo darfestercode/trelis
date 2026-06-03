@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import AppShell from '@/app/components/AppShell'
 import { useUser } from '@/app/components/UserContext'
-import { Conversation } from '@/types'
 
 interface Post {
   id: number
@@ -30,17 +29,12 @@ function timeAgo(ts: string) {
   return `${Math.floor(h / 24)}d ago`
 }
 
-function yearLabel(y: number | null) {
-  const map: Record<number, string> = { 1: 'Undergrad', 2: 'Undergrad', 3: 'Undergrad', 4: 'Undergrad', 5: 'Postgraduate', 6: 'PhD' }
-  return y ? (map[y] ?? 'Student') : 'Student'
-}
 
 export default function FeedPage() {
   const router = useRouter()
   const { user: currentUser, loggedOut } = useUser()
   const [posts, setPosts] = useState<Post[]>([])
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [postText, setPostText] = useState('')
+const [postText, setPostText] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [connected, setConnected] = useState<Set<number>>(new Set())
   const [attachment, setAttachment] = useState<{ url: string; type: string; name: string } | null>(null)
@@ -57,11 +51,9 @@ export default function FeedPage() {
   useEffect(() => {
     Promise.all([
       fetch('/api/posts').then(r => r.json()).catch(() => ({ posts: [] })),
-      fetch('/api/messages').then(r => r.json()).catch(() => ({ conversations: [] })),
       fetch('/api/connections').then(r => r.json()).catch(() => ({ connections: [] })),
-    ]).then(([postsData, msgsData, connsData]) => {
+    ]).then(([postsData, connsData]) => {
       setPosts(postsData.posts ?? [])
-      setConversations(msgsData.conversations ?? [])
       const ids = new Set<number>((connsData.connections ?? []).map((c: { other_user_id: number }) => c.other_user_id))
       setConnected(ids)
     })
@@ -126,53 +118,10 @@ export default function FeedPage() {
     })
   }
 
-  function formatTime(ts: string) {
-    const d = new Date(ts)
-    const now = new Date()
-    return d.toDateString() === now.toDateString()
-      ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : d.toLocaleDateString([], { month: 'short', day: 'numeric' })
-  }
-
   return (
     <AppShell>
       <div className="max-w-3xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
         <div className="flex-1 min-w-0 space-y-5">
-          {/* Recent Chats */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-gray-900 text-sm">Recent Chats</h3>
-              <Link href="/messages" className="text-xs text-[#1e3a5f] hover:underline">View All</Link>
-            </div>
-            {conversations.length === 0 ? (
-              <p className="text-xs text-gray-400 text-center py-3">No chats yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {conversations.slice(0, 3).map(conv => (
-                  <Link
-                    key={conv.other_user_id}
-                    href={`/messages?with=${conv.other_user_id}`}
-                    className="flex items-center gap-2.5 hover:bg-gray-50 rounded-lg p-1.5 -mx-1.5 transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-[#1e3a5f] flex items-center justify-center text-white font-bold text-xs shrink-0">
-                      {conv.other_user_name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-gray-900 truncate">{conv.other_user_name}</p>
-                        <span className="text-xs text-gray-400 shrink-0 ml-1">{formatTime(conv.latest_time)}</span>
-                      </div>
-                      <p className="text-xs text-gray-400 truncate">{conv.latest_message}</p>
-                    </div>
-                    {Number(conv.unread_count) > 0 && (
-                      <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-                    )}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Post composer */}
           <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
             <form onSubmit={handlePost}>
@@ -265,12 +214,7 @@ export default function FeedPage() {
                         <Link href={`/profile/${post.user_id}`} className="font-semibold text-gray-900 text-sm hover:underline">
                           {post.name}
                         </Link>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {yearLabel(post.year)}
-                          {post.major ? ` · ${post.major}` : ''}
-                          {post.university ? ` @ ${post.university}` : ''}
-                          {' · '}{timeAgo(post.created_at)}
-                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">{timeAgo(post.created_at)}</p>
                       </div>
                       {currentUser && currentUser.id !== post.user_id && (
                         <button
@@ -304,7 +248,7 @@ export default function FeedPage() {
                       <div className="flex flex-wrap gap-1.5 mt-3">
                         {post.tags.map(t => (
                           <span key={t.id} className="text-xs border border-gray-200 text-gray-600 px-2.5 py-1 rounded-full">
-                            {t.name}
+                            #{t.name}
                           </span>
                         ))}
                       </div>

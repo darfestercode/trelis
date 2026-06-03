@@ -178,7 +178,7 @@ export default function RoadmapPage() {
                     className="flex-1 rounded-xl overflow-hidden relative mb-4"
                     style={{
                       maxHeight: showForm ? '400px' : '48px',
-                      border: showForm ? '1px solid rgba(30,58,95,0.4)' : '1px dashed #4b5563',
+                      border: showForm ? '1px solid rgba(30,58,95,0.4)' : '1px dashed var(--border-light)',
                       background: showForm ? '' : 'transparent',
                       transition: 'max-height 0.45s cubic-bezier(0.4,0,0.2,1), border 0.3s ease, background 0.3s ease',
                     }}
@@ -190,7 +190,7 @@ export default function RoadmapPage() {
                         opacity: showForm ? 0 : 1,
                         transition: 'opacity 0.15s ease',
                         pointerEvents: showForm ? 'none' : 'auto',
-                        color: '#9ca3af',
+                        color: 'var(--text-muted)',
                       }}
                       onClick={() => setShowForm(true)}
                     >
@@ -276,7 +276,7 @@ export default function RoadmapPage() {
                         {/* Card — no height cap so description shows fully; cross-fades to edit form */}
                         <div
                           className={`flex-1 bg-white rounded-xl border overflow-hidden transition-all duration-300 ${isLast ? '' : 'mb-4'}`}
-                          style={{ borderColor: isEditing ? 'rgba(30,58,95,0.4)' : '#e5e7eb' }}
+                          style={{ borderColor: isEditing ? 'rgba(30,58,95,0.4)' : 'var(--border-light)' }}
                         >
                           {/* View mode — fades out when editing */}
                           <div
