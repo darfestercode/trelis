@@ -148,6 +148,7 @@ export default function MyProfilePage() {
   }
 
   const exactMatch = suggestions.find(s => s.name === tagInput.trim())
+  const alreadyAdded = !!tagInput.trim() && selectedTags.some(t => t.name === tagInput.trim())
   const milestones = currentUser.recent_milestones ?? []
 
   return (
@@ -254,13 +255,19 @@ export default function MyProfilePage() {
                         </button>
                       ))}
                       {tagInput.trim() && !exactMatch && (
-                        <button
-                          type="button"
-                          onMouseDown={() => createTag(tagInput.trim())}
-                          className="w-full text-left px-4 py-2.5 text-sm text-[#335293] font-semibold hover:bg-[#335293]/5 flex items-center gap-1.5 border-t border-gray-100 border-x-0 border-b-0 bg-transparent cursor-pointer"
-                        >
-                          + Create <span className="font-bold">#{tagInput.trim()}</span>
-                        </button>
+                        alreadyAdded ? (
+                          <div className="px-4 py-2.5 text-sm text-gray-400 flex items-center gap-1.5 border-t border-gray-100">
+                            <span className="text-[#335293] font-semibold">#{tagInput.trim()}</span> is already in your tags
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onMouseDown={() => createTag(tagInput.trim())}
+                            className="w-full text-left px-4 py-2.5 text-sm text-[#335293] font-semibold hover:bg-[#335293]/5 flex items-center gap-1.5 border-t border-gray-100 border-x-0 border-b-0 bg-transparent cursor-pointer"
+                          >
+                            + Create <span className="font-bold">#{tagInput.trim()}</span>
+                          </button>
+                        )
                       )}
                     </div>
                   )}
