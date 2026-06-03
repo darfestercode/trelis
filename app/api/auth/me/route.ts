@@ -31,7 +31,9 @@ export async function GET() {
     )
 
     if (result.rows.length === 0) {
-      return Response.json({ error: 'User not found' }, { status: 404 })
+      const res = Response.json({ error: 'User not found' }, { status: 404 })
+      ;(res.headers as Headers).set('Set-Cookie', 'auth_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0')
+      return res
     }
 
     return new Response(JSON.stringify({ user: result.rows[0] }), {
